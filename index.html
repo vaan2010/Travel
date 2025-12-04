@@ -1,0 +1,2324 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>旅行規劃</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts: Noto Sans TC -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Sortable.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        muji: { 
+                            bg: '#F5F5F0', 
+                            card: '#FFFFFF', 
+                            primary: '#8B7355', 
+                            secondary: '#A0947D', 
+                            accent: '#6B5740', 
+                            text: '#3A3A3A',
+                            border: '#E0E0DB',
+                            light: '#F9F9F7'
+                        }
+                    },
+                    fontFamily: { sans: ['"Noto Sans TC"', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { 
+            background: #F5F5F0; 
+            color: #3A3A3A; 
+            -webkit-tap-highlight-color: transparent; 
+            font-weight: 300;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .nav-item.active { color: #6B5740; font-weight: 500; }
+        .muji-shadow { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); }
+        .muji-border { border: 1px solid #E0E0DB; }
+        
+        .edit-input { 
+            background: #FFFFFF; 
+            border: 1px solid #E0E0DB; 
+            border-radius: 2px; 
+            padding: 8px 12px; 
+            width: 100%; 
+            max-width: 100%;
+            box-sizing: border-box;
+            color: #3A3A3A; 
+            transition: all 0.2s; 
+            font-size: 14px; 
+            font-weight: 300;
+        }
+        .edit-input:focus { 
+            outline: none; 
+            border-color: #8B7355; 
+            box-shadow: 0 0 0 2px rgba(139, 115, 85, 0.1); 
+        }
+        
+        .btn-primary { 
+            background: #8B7355; 
+            color: #FFFFFF; 
+            border: none;
+            transition: background 0.2s;
+        }
+        .btn-primary:hover { background: #6B5740; }
+        .btn-delete { 
+            color: #A0947D; 
+            background: transparent; 
+            border: 1px solid #E0E0DB;
+            border-radius: 2px; 
+            width: 24px; 
+            height: 24px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-delete:hover { 
+            color: #6B5740; 
+            border-color: #A0947D; 
+        }
+        
+        /* 拖拉手把樣式 */
+        .drag-handle { 
+            cursor: grab; 
+            color: #A0947D; 
+            padding: 8px 6px; 
+            touch-action: none; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            opacity: 0.4;
+        }
+        .drag-handle:active { cursor: grabbing; opacity: 1; }
+        .sortable-ghost { 
+            opacity: 0.3; 
+            background: #F9F9F7; 
+            border: 1px dashed #A0947D; 
+        }
+        
+        /* Icon 選擇器樣式 */
+        .icon-option { 
+            width: 32px; 
+            height: 32px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            border-radius: 2px; 
+            cursor: pointer; 
+            border: 1px solid #E0E0DB; 
+            color: #8B7355; 
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .icon-option:hover { border-color: #A0947D; }
+        .icon-option.selected { 
+            background: #8B7355; 
+            color: #FFFFFF; 
+            border-color: #8B7355; 
+        }
+        
+        /* 幣別選擇器樣式 */
+        #target-currency {
+            background: transparent;
+            color: white;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            padding: 2px 4px;
+            border-radius: 2px;
+            transition: background-color 0.2s;
+        }
+        #target-currency:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        #target-currency option {
+            background-color: #8B7355;
+            color: white;
+            padding: 4px;
+        }
+        
+        /* 計算機彈窗 */
+        .calculator-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .calculator-overlay.show {
+            display: flex;
+        }
+        .calculator-modal {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            width: 280px;
+            max-width: 90vw;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        .calculator-display {
+            width: 100%;
+            padding: 12px;
+            font-size: 24px;
+            text-align: right;
+            border: 1px solid #E0E0DB;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            background: #F5F5F0;
+            color: #8B7355;
+            font-family: 'Courier New', monospace;
+            min-height: 50px;
+            box-sizing: border-box;
+        }
+        .calculator-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+        .calc-btn {
+            padding: 16px;
+            font-size: 18px;
+            border: 1px solid #E0E0DB;
+            border-radius: 4px;
+            background: white;
+            color: #8B7355;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        .calc-btn:hover {
+            background: #F5F5F0;
+            border-color: #A0947D;
+        }
+        .calc-btn:active {
+            background: #E0E0DB;
+        }
+        .calc-btn.operator {
+            background: #8B7355;
+            color: white;
+            border-color: #8B7355;
+        }
+        .calc-btn.operator:hover {
+            background: #A0947D;
+        }
+        .calc-btn.clear {
+            background: #F5F5F0;
+            color: #8B7355;
+        }
+        .calc-btn.equals {
+            background: #8B7355;
+            color: white;
+            grid-row: span 2;
+        }
+        .calc-btn.zero {
+            grid-column: span 2;
+        }
+        
+        /* Sidebar Menu */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 40;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .sidebar-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .sidebar-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 280px;
+            max-width: calc(100vw - 40px);
+            background: #FFFFFF;
+            z-index: 50;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+        }
+        .sidebar-menu.active {
+            transform: translateX(0);
+        }
+        
+        body.sidebar-open {
+            overflow: hidden;
+        }
+        
+        /* 防止內容超出螢幕 */
+        body {
+            max-width: 100vw;
+            overflow-x: hidden;
+        }
+        
+        header, main, nav {
+            max-width: 100vw;
+            box-sizing: border-box;
+        }
+        
+        /* 響應式調整 */
+        @media (max-width: 640px) {
+            .sidebar-menu {
+                width: calc(100vw - 40px);
+                max-width: 280px;
+            }
+            
+            /* 手機上日期輸入框調整 */
+            input[type="date"] {
+                font-size: 12px;
+                padding: 6px 8px;
+            }
+            
+            /* 手機上卡片內邊距調整 */
+            .bg-white.muji-border {
+                padding: 12px !important;
+            }
+        }
+        
+        /* 確保所有輸入框不超出 */
+        input, textarea, select {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        /* 確保 flex 容器不會超出 */
+        .flex {
+            min-width: 0;
+        }
+    </style>
+</head>
+<body class="font-sans h-screen flex flex-col overflow-hidden">
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar Menu -->
+    <div class="sidebar-menu" id="sidebar-menu">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-lg font-medium text-muji-accent">行程列表</h2>
+                <button onclick="toggleSidebar()" class="text-muji-secondary hover:text-muji-accent">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <button onclick="addNewTrip()" class="w-full bg-muji-primary text-white py-3 mb-6 hover:bg-muji-accent transition-colors">
+                <i class="fas fa-plus mr-2"></i> 新增行程
+            </button>
+            <div id="trip-list" class="space-y-2 mb-6"></div>
+            <div class="border-t border-gray-200 pt-4">
+                <button onclick="openCompanionsManager()" class="w-full bg-muji-light text-muji-accent py-3 hover:bg-muji-border transition-colors">
+                    <i class="fas fa-users mr-2"></i> 同行者管理
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-white muji-border-b muji-shadow px-4 sm:px-6 py-3 relative z-10 max-w-full overflow-hidden">
+        <div class="flex items-start justify-between">
+            <button onclick="toggleSidebar()" class="w-9 h-9 bg-white muji-border flex items-center justify-center active:opacity-80 transition-opacity text-muji-primary flex-shrink-0">
+                <i class="fas fa-bars text-sm"></i>
+            </button>
+            <div id="header-info" class="flex-1 min-w-0 flex flex-col items-center justify-center text-center px-2 sm:px-4 max-w-full"></div>
+            <div class="flex flex-col gap-1.5 flex-shrink-0" id="header-actions">
+                <button onclick="addNewDay()" id="add-day-header-btn" class="hidden w-9 h-9 bg-muji-primary text-white flex items-center justify-center active:opacity-80 transition-opacity">
+                    <i class="fas fa-plus text-sm"></i>
+                </button>
+                <button onclick="toggleEditMode()" id="edit-toggle-btn" class="hidden w-9 h-9 bg-white muji-border flex items-center justify-center active:opacity-80 transition-opacity text-muji-primary">
+                    <i class="fas fa-pen text-sm"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main id="app-content" class="flex-1 overflow-y-auto overflow-x-hidden p-4 pb-32 no-scrollbar relative max-w-full box-border">
+        
+        <!-- Empty State -->
+        <div id="empty-state" class="hidden flex flex-col items-center justify-center h-full min-h-[400px] text-center px-4">
+            <div class="mb-6">
+                <i class="fas fa-map-marked-alt text-6xl text-muji-secondary opacity-40"></i>
+            </div>
+            <h2 class="text-xl font-medium text-muji-accent mb-3">還沒有行程</h2>
+            <p class="text-muji-secondary mb-6 max-w-sm">
+                點擊左上角的選單圖示 <i class="fas fa-bars text-muji-primary"></i><br>
+                然後選擇「新增行程」來建立您的第一個行程
+            </p>
+            <button onclick="toggleSidebar(); setTimeout(() => document.querySelector('[onclick*=addNewTrip]')?.scrollIntoView({behavior: 'smooth', block: 'center'}), 300)" class="bg-muji-primary text-white px-6 py-3 hover:bg-muji-accent transition-colors">
+                <i class="fas fa-plus mr-2"></i> 開啟選單新增行程
+            </button>
+        </div>
+        
+        <!-- PLAN SECTION -->
+        <section id="view-plan" class="view-section block">
+            
+            <!-- Logistics -->
+            <div class="mb-6 space-y-4">
+                <div class="bg-white muji-border p-4 sm:p-5 muji-shadow min-w-0 max-w-full">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-sm font-medium text-muji-accent"><i class="fas fa-plane mr-2"></i>航班資訊</h3>
+                        <button id="add-flight-btn" onclick="addFlight()" class="hidden text-xs text-muji-primary muji-border px-3 py-1 hover:bg-muji-light transition-colors">+ 新增</button>
+                    </div>
+                    <div id="flight-container" class="space-y-3"></div>
+                </div>
+
+                <div class="bg-white muji-border p-4 sm:p-5 muji-shadow min-w-0 max-w-full">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-sm font-medium text-muji-accent"><i class="fas fa-bed mr-2"></i>住宿安排</h3>
+                        <button id="add-hotel-btn" onclick="addHotel()" class="hidden text-xs text-muji-primary muji-border px-3 py-1 hover:bg-muji-light transition-colors">+ 新增</button>
+                    </div>
+                    <div id="hotel-container" class="space-y-3"></div>
+                </div>
+            </div>
+
+            <!-- Itinerary -->
+            <div id="itinerary-container" class="space-y-6 mt-6"></div>
+            
+            <div id="add-day-btn" class="hidden mt-8 mb-12 text-center">
+                <button onclick="addNewDay()" class="bg-white muji-border text-muji-primary px-6 py-3 w-full hover:bg-muji-light transition-colors">
+                    <i class="fas fa-plus mr-2"></i> 新增一天 (Day)
+                </button>
+            </div>
+        </section>
+
+        <!-- GUIDE SECTION -->
+        <section id="view-guide" class="view-section hidden">
+            <h2 class="text-xl font-medium mb-6 text-muji-accent"><i class="fas fa-star mr-2 text-muji-primary"></i>深度導覽</h2>
+            <div id="guide-container"></div>
+            <div id="add-guide-btn" class="hidden mb-8">
+                <button onclick="addNewGuide()" class="bg-white muji-border text-muji-primary px-6 py-3 w-full hover:bg-muji-light transition-colors">+ 新增導覽文章</button>
+            </div>
+        </section>
+
+        <!-- WALLET SECTION -->
+        <section id="view-wallet" class="view-section hidden">
+            <div class="bg-muji-primary rounded text-white p-6 mb-6">
+                <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+                    <span class="text-xs font-medium opacity-90">預估總額 (TWD)</span>
+                    <div class="flex items-center gap-2 bg-white/20 px-3 py-1 flex-wrap">
+                        <select id="target-currency" onchange="onCurrencyChange()">
+                            <option value="JPY">日圓</option>
+                            <option value="USD">美金</option>
+                            <option value="EUR">歐元</option>
+                            <option value="CNY">人民幣</option>
+                            <option value="KRW">韓元</option>
+                            <option value="GBP">英鎊</option>
+                            <option value="HKD">港幣</option>
+                            <option value="THB">泰銖</option>
+                        </select>
+                        <span class="text-xs">匯率</span>
+                        <span id="exchange-rate-display" class="bg-transparent text-white text-xs text-center font-medium whitespace-nowrap">載入中...</span>
+                        <input type="number" id="exchange-rate" value="0.22" class="hidden" step="0.0001">
+                    </div>
+                </div>
+                <div class="text-3xl font-medium mb-1">NT$ <span id="total-twd">0</span></div>
+                <div class="text-sm opacity-90"><span id="currency-symbol">¥</span> <span id="total-foreign">0</span> <span id="target-currency-display">日圓</span></div>
+            </div>
+
+                <div class="bg-white muji-border p-4 sm:p-5 muji-shadow mb-6 min-w-0 max-w-full">
+                <h3 class="text-sm font-medium text-muji-accent mb-4">新增消費</h3>
+                <div class="space-y-3">
+                    <input type="text" id="expense-desc" placeholder="項目名稱" class="edit-input text-sm">
+                    <div class="flex gap-2">
+                        <input type="text" id="expense-math" placeholder="金額" class="edit-input text-sm flex-1 font-mono">
+                        <button onclick="openCalculator()" class="text-muji-primary muji-border w-10 hover:bg-muji-light transition-colors"><i class="fas fa-calculator"></i></button>
+                    </div>
+                    <div class="flex items-center justify-between mt-2">
+                        <label class="flex items-center gap-2 text-xs text-muji-primary muji-border px-4 py-2 cursor-pointer hover:bg-muji-light transition-colors">
+                            <i class="fas fa-camera"></i> 拍照存證
+                            <input type="file" id="expense-photo" accept="image/*" class="hidden" onchange="handlePhotoPreview(this)">
+                        </label>
+                        <span id="photo-name" class="text-xs text-muji-secondary truncate max-w-[100px]"></span>
+                    </div>
+                    <button onclick="addExpense()" class="w-full btn-primary py-3 mt-2 text-sm font-medium active:opacity-80 transition-opacity">記下一筆</button>
+                </div>
+            </div>
+            <!-- 支出分頁 (不同的人) -->
+            <div class="flex bg-muji-light p-1 mb-4 overflow-x-auto">
+                <div id="expense-tabs" class="flex gap-1 min-w-full">
+                    <!-- 動態生成分頁 -->
+                </div>
+            </div>
+            <div id="expense-list" class="space-y-3 pb-10"></div>
+        </section>
+
+        <!-- LISTS SECTION -->
+        <section id="view-lists" class="view-section hidden">
+            <div class="flex bg-muji-light p-1 mb-6">
+                <button onclick="switchListTab('checklist')" id="tab-btn-checklist" class="flex-1 py-2 text-xs font-medium bg-white muji-shadow text-muji-accent">行前準備</button>
+                <button onclick="switchListTab('memo')" id="tab-btn-memo" class="flex-1 py-2 text-xs font-medium text-muji-secondary">備忘錄</button>
+            </div>
+            <div id="content-checklist">
+                <div id="checklist-container" class="space-y-2"></div>
+                <div class="mt-4 flex gap-2">
+                    <input type="text" id="new-check-item" placeholder="新增項目 (Enter 新增)" class="edit-input text-sm flex-1" onkeydown="if(event.key==='Enter') addCheckItem()">
+                    <button onclick="addCheckItem()" class="text-muji-primary muji-border px-2 w-10 h-10 hover:bg-muji-light transition-colors"><i class="fas fa-plus"></i></button>
+                </div>
+            </div>
+            <div id="content-memo" class="hidden">
+                <textarea id="memo-area" class="w-full h-64 bg-white muji-border p-4 text-sm leading-relaxed resize-none focus:outline-none text-muji-text" placeholder="隨手記下..."></textarea>
+                <div id="memo-links-preview" class="mt-4 flex flex-wrap gap-2"></div>
+            </div>
+        </section>
+
+        <!-- INFO SECTION -->
+        <section id="view-info" class="view-section hidden">
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <a href="https://www.jma.go.jp/bosai/forecast/" target="_blank" class="bg-white muji-border p-4 flex flex-col items-center justify-center text-muji-accent h-32 hover:bg-muji-light transition-colors">
+                    <i class="fas fa-cloud-sun text-2xl mb-2"></i><span class="text-sm font-medium">天氣預報</span>
+                </a>
+                <div class="bg-white muji-border p-4 flex flex-col items-center justify-center text-muji-accent h-32">
+                    <i class="fas fa-heart-pulse text-2xl mb-2"></i><span class="text-sm font-medium">緊急 119</span>
+                </div>
+            </div>
+            
+            <div class="bg-white muji-border p-4 sm:p-5 muji-shadow mt-6 mb-6 min-w-0 max-w-full">
+                <h3 class="text-sm font-medium mb-3 text-muji-accent"><i class="fas fa-sync-alt mr-2"></i>資料備份</h3>
+                <div class="flex gap-2 mb-3">
+                    <button onclick="exportData()" class="flex-1 bg-muji-light muji-border py-2 text-xs font-medium hover:bg-muji-border transition-colors">產生代碼</button>
+                    <button onclick="importData()" class="flex-1 bg-white muji-border py-2 text-xs font-medium hover:bg-muji-light transition-colors">讀取覆蓋</button>
+                </div>
+                <textarea id="data-area" class="w-full h-24 bg-muji-light muji-border p-2 text-[10px] text-muji-text font-mono break-all resize-none focus:outline-none" placeholder="在此貼上代碼..."></textarea>
+                <button onclick="copyToClipboard()" id="copy-btn" class="w-full mt-2 muji-border text-muji-secondary py-1 text-xs hidden hover:bg-muji-light transition-colors">複製代碼</button>
+            </div>
+            
+            <div class="text-center mt-8">
+                <button onclick="resetData()" class="text-xs text-muji-secondary underline">重置所有資料 (Debug)</button>
+            </div>
+        </section>
+    </main>
+
+    <!-- 計算機彈窗 -->
+    <div id="calculator-overlay" class="calculator-overlay" onclick="closeCalculatorOnOverlay(event)">
+        <div class="calculator-modal" onclick="event.stopPropagation()">
+            <div id="calculator-display" class="calculator-display">0</div>
+            <div class="calculator-buttons">
+                <button class="calc-btn clear" onclick="calcClear()">C</button>
+                <button class="calc-btn clear" onclick="calcClearEntry()">CE</button>
+                <button class="calc-btn operator" onclick="calcOperation('/')">÷</button>
+                <button class="calc-btn operator" onclick="calcOperation('*')">×</button>
+                <button class="calc-btn" onclick="calcNumber('7')">7</button>
+                <button class="calc-btn" onclick="calcNumber('8')">8</button>
+                <button class="calc-btn" onclick="calcNumber('9')">9</button>
+                <button class="calc-btn operator" onclick="calcOperation('-')">−</button>
+                <button class="calc-btn" onclick="calcNumber('4')">4</button>
+                <button class="calc-btn" onclick="calcNumber('5')">5</button>
+                <button class="calc-btn" onclick="calcNumber('6')">6</button>
+                <button class="calc-btn operator" onclick="calcOperation('+')">+</button>
+                <button class="calc-btn" onclick="calcNumber('1')">1</button>
+                <button class="calc-btn" onclick="calcNumber('2')">2</button>
+                <button class="calc-btn" onclick="calcNumber('3')">3</button>
+                <button class="calc-btn equals" onclick="calcEquals()">=</button>
+                <button class="calc-btn zero" onclick="calcNumber('0')">0</button>
+                <button class="calc-btn" onclick="calcNumber('.')">.</button>
+            </div>
+            <div class="mt-3 flex gap-2">
+                <button onclick="applyCalculatorResult()" class="flex-1 bg-muji-primary text-white py-2 rounded hover:opacity-90 transition-opacity">確定</button>
+                <button onclick="closeCalculator()" class="flex-1 bg-white muji-border py-2 rounded hover:bg-muji-light transition-colors">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 同行者管理彈窗 -->
+    <div id="companions-overlay" class="sidebar-overlay" style="z-index: 60;" onclick="closeCompanionsManager(event)">
+        <div class="sidebar-menu" style="width: 320px; max-width: 90vw; z-index: 70;" onclick="event.stopPropagation()">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-lg font-medium text-muji-accent">同行者管理</h2>
+                    <button onclick="closeCompanionsManager()" class="text-muji-secondary hover:text-muji-accent">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <!-- 當前用戶設定 -->
+                <div class="bg-muji-light p-4 mb-6 rounded">
+                    <label class="block text-sm font-medium text-muji-accent mb-2">我的名稱</label>
+                    <input type="text" id="current-user-name" placeholder="輸入您的名稱" class="edit-input text-sm mb-3">
+                    <button onclick="setCurrentUser()" class="w-full bg-muji-primary text-white py-2 rounded hover:bg-muji-accent transition-colors text-sm">設定名稱</button>
+                </div>
+                
+                <!-- 同行者列表 -->
+                <div class="mb-4">
+                    <h3 class="text-sm font-medium text-muji-accent mb-3">同行者</h3>
+                    <div id="companions-list" class="space-y-2 mb-4">
+                        <!-- 動態生成 -->
+                    </div>
+                </div>
+                
+                <!-- 加入行程代碼 -->
+                <div class="bg-muji-light p-4 rounded mb-4">
+                    <label class="block text-sm font-medium text-muji-accent mb-2">行程代碼</label>
+                    <div class="flex gap-2 mb-2">
+                        <input type="text" id="trip-code-input" placeholder="輸入行程代碼" class="edit-input text-sm flex-1">
+                        <button onclick="joinTripByCode()" class="bg-muji-primary text-white px-4 py-2 rounded hover:bg-muji-accent transition-colors text-sm">加入</button>
+                    </div>
+                    <div class="mt-3">
+                        <div class="text-xs text-muji-secondary mb-1">當前行程代碼：</div>
+                        <div class="bg-white p-2 rounded border border-gray-200">
+                            <code id="current-trip-code" class="text-sm font-mono text-muji-accent">未選擇行程</code>
+                            <button onclick="copyTripCode()" class="ml-2 text-xs text-muji-primary">複製</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <nav class="fixed bottom-0 w-full max-w-full bg-white muji-border-t pb-safe pt-2 px-4 z-50 h-[65px] box-border safe-area-inset-bottom">
+        <div class="grid grid-cols-5 h-full">
+            <button onclick="switchTab('plan')" class="nav-item active flex flex-col items-center"><i class="fas fa-calendar-alt text-lg mb-1"></i><span class="text-[10px]">行程</span></button>
+            <button onclick="switchTab('guide')" class="nav-item flex flex-col items-center text-muji-secondary"><i class="fas fa-book text-lg mb-1"></i><span class="text-[10px]">導覽</span></button>
+            <button onclick="switchTab('wallet')" class="nav-item flex flex-col items-center text-muji-secondary"><div class="bg-muji-primary w-12 h-12 rounded-full flex items-center justify-center -mt-6 muji-border-2 border-white"><i class="fas fa-wallet text-white text-base"></i></div></button>
+            <button onclick="switchTab('lists')" class="nav-item flex flex-col items-center text-muji-secondary"><i class="fas fa-list text-lg mb-1"></i><span class="text-[10px]">清單</span></button>
+            <button onclick="switchTab('info')" class="nav-item flex flex-col items-center text-muji-secondary"><i class="fas fa-info text-lg mb-1"></i><span class="text-[10px]">資訊</span></button>
+        </div>
+    </nav>
+
+    <script>
+        // --- ICONS LIST ---
+        const ICON_OPTIONS = [
+            'fa-heart', 'fa-star', 'fa-plane', 'fa-train', 'fa-bus', 'fa-walking', 
+            'fa-utensils', 'fa-coffee', 'fa-shopping-bag', 'fa-camera', 'fa-landmark', 
+            'fa-map-marker-alt', 'fa-ticket-alt', 'fa-music', 'fa-spa', 'fa-tree'
+        ];
+
+        // --- DEFAULT DATA ---
+        const createDefaultTrip = () => ({
+            id: Date.now().toString(),
+            meta: { title: "TOKYO TRIP", startDate: "2025-04-01", endDate: "2025-04-06" },
+            flights: [
+                { type: "去程", code: "JL096", time: "10:00", note: "T2 出發" },
+                { type: "回程", code: "JL099", time: "18:00", note: "T3 報到" }
+            ],
+            hotels: [
+                { name: "Muji Hotel Ginza", dates: "4/1 - 4/3", address: "銀座 3-3-5", link: "https://maps.google.com/?q=Muji+Hotel+Ginza" }
+            ],
+            itinerary: [
+                { 
+                    day: "Day 1", title: "抵達與銀座", 
+                    events: [
+                        { startTime: "14:00", endTime: "15:30", title: "成田機場抵達", links: [], images: [], desc: "領取 JR Pass", highlight: false },
+                        { startTime: "18:30", endTime: "20:00", title: "晚餐預約", links: ["https://google.com"], images: [], desc: "燒肉 Toraji", highlight: true }
+                    ]
+                }
+            ],
+            guides: [
+                { title: "淺草寺的秘密", content: "淺草寺是東京都內最古老的寺廟...", icon: "fa-landmark", images: [], links: [] }
+            ]
+        });
+
+        // --- INIT ---
+        let trips = [];
+        let currentTripId = null;
+        let appData = null;
+        
+        // --- Firebase & 多人共享 ---
+        let firebaseDB = null;
+        let firebaseApp = null;
+        let currentUserId = localStorage.getItem('travel_user_id') || generateUserId();
+        let currentUserName = localStorage.getItem('travel_user_name') || '未命名';
+        let currentExpenseUser = currentUserId; // 當前選擇的支出使用者
+        let companions = {}; // 同行者列表 {userId: {name, joinedAt}}
+        let firebaseListeners = {}; // Firebase 監聽器
+        
+        // 生成用戶 ID
+        function generateUserId() {
+            const id = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('travel_user_id', id);
+            return id;
+        }
+        
+        // 初始化 Firebase (動態導入)
+        async function initFirebase() {
+            try {
+                const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js");
+                const { getDatabase } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+                
+                const firebaseConfig = {
+                    apiKey: "AIzaSyAyebCTYX0SdZbO_wTKVjMyQXmGsnmSkzs",
+                    authDomain: "travel-30c43.firebaseapp.com",
+                    databaseURL: "https://travel-30c43-default-rtdb.firebaseio.com",
+                    projectId: "travel-30c43",
+                    storageBucket: "travel-30c43.firebasestorage.app",
+                    messagingSenderId: "402035619902",
+                    appId: "1:402035619902:web:f492adf217821c093f396f",
+                    measurementId: "G-SPF452S4LR"
+                };
+                
+                firebaseApp = initializeApp(firebaseConfig);
+                firebaseDB = getDatabase(firebaseApp);
+                window.firebaseDB = firebaseDB;
+                
+                // 導出 Firebase 函數到 window
+                const dbModule = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+                window.firebaseRef = dbModule.ref;
+                window.firebasePush = dbModule.push;
+                window.firebaseOnValue = dbModule.onValue;
+                window.firebaseSet = dbModule.set;
+                window.firebaseRemove = dbModule.remove;
+                window.firebaseUpdate = dbModule.update;
+                
+                console.log('Firebase 初始化成功');
+            } catch (error) {
+                console.error('Firebase 初始化失敗:', error);
+            }
+        }
+        
+        // 頁面載入時初始化 Firebase
+        initFirebase();
+
+        // 初始化行程資料
+        try {
+            const savedTrips = JSON.parse(localStorage.getItem('travel_trips'));
+            const savedCurrentId = localStorage.getItem('travel_current_trip_id');
+            
+            if (savedTrips && Array.isArray(savedTrips) && savedTrips.length > 0) {
+                // 過濾掉無效的行程（沒有 id 或 meta 的）
+                trips = savedTrips.filter(t => t && t.id && t.meta);
+                if (trips.length > 0) {
+                    currentTripId = savedCurrentId || trips[0].id;
+                    // 載入當前行程資料
+                    appData = trips.find(t => t.id === currentTripId) || trips[0];
+                    
+                    // 確保 appData 有必要的欄位
+                    if (!appData.meta) {
+                        appData.meta = { title: "新行程", startDate: "", endDate: "" };
+                    }
+                    if (!appData.flights) appData.flights = [];
+                    if (!appData.hotels) appData.hotels = [];
+                    if (!appData.itinerary) appData.itinerary = [];
+                    if (!appData.guides) appData.guides = [];
+                } else {
+                    // 過濾後沒有有效行程
+                    trips = [];
+                    currentTripId = null;
+                    appData = null;
+                    // 清除無效資料
+                    localStorage.removeItem('travel_trips');
+                    localStorage.removeItem('travel_current_trip_id');
+                }
+            } else {
+                // 沒有行程，不自動建立
+                trips = [];
+                currentTripId = null;
+                appData = null;
+                // 清除可能存在的舊資料
+                localStorage.removeItem('travel_trips');
+                localStorage.removeItem('travel_current_trip_id');
+            }
+        } catch (e) {
+            // 發生錯誤時也不自動建立行程
+            trips = [];
+            currentTripId = null;
+            appData = null;
+            // 清除可能損壞的資料
+            localStorage.removeItem('travel_trips');
+            localStorage.removeItem('travel_current_trip_id');
+        }
+
+        // 遷移舊資料（如果有）- 只在已經有行程時才遷移
+        try {
+            const oldData = JSON.parse(localStorage.getItem('travel_data'));
+            // 只在有行程且符合遷移條件時才執行，不會自動建立新行程
+            if (oldData && appData && trips.length > 0 && trips.length === 1 && trips[0].meta && trips[0].meta.title === "TOKYO TRIP") {
+                // 遷移舊資料到新結構，確保 meta 存在
+                appData = { ...trips[0], ...oldData };
+                if (!appData.meta) {
+                    appData.meta = { title: "TOKYO TRIP", startDate: "2025-04-01", endDate: "2025-04-06" };
+                }
+                trips[0] = appData;
+                saveTrips();
+            }
+            // 遷移完成後清除舊資料，避免重複遷移
+            if (oldData && trips.length > 0) {
+                localStorage.removeItem('travel_data');
+            }
+        } catch (e) {}
+
+        // Migration check - 只在有行程時才執行
+        if (appData) {
+            try {
+                // Migration check - 確保所有必要欄位存在
+                if (!appData.meta) {
+                    appData.meta = { title: appData.meta?.title || "新行程", startDate: appData.meta?.startDate || "", endDate: appData.meta?.endDate || "" };
+                }
+                if(!Array.isArray(appData.hotels)) appData.hotels = [appData.hotels || createDefaultTrip().hotels[0]];
+                if(!Array.isArray(appData.flights)) appData.flights = createDefaultTrip().flights;
+                // 遷移舊的link格式到links數組
+                if (appData.itinerary) {
+                    appData.itinerary.forEach(day => {
+                        if (day.events) {
+                            day.events.forEach(evt => {
+                                if (evt.link && !evt.links) {
+                                    evt.links = [evt.link];
+                                    delete evt.link;
+                                }
+                                if (!evt.links) evt.links = [];
+                                if (!evt.images) evt.images = [];
+                            });
+                        }
+                    });
+                }
+                // 遷移導覽數據
+                if (appData.guides) {
+                    appData.guides.forEach(guide => {
+                        if (!guide.links) guide.links = [];
+                        if (!guide.images) guide.images = [];
+                        if (!guide.icon) guide.icon = 'fa-heart';
+                    });
+                }
+                saveCurrentTrip(); // 保存遷移後的數據
+            } catch (e) {
+                console.error('Migration error:', e);
+            }
+        }
+
+        let isEditMode = false;
+        let expandedDays = new Set(); // 追蹤展開的行程
+
+        // 儲存所有行程
+        function saveTrips() {
+            // 更新當前行程資料（如果有）
+            if (appData && currentTripId) {
+                const index = trips.findIndex(t => t.id === currentTripId);
+                if (index >= 0) {
+                    trips[index] = { ...appData };
+                }
+            }
+            localStorage.setItem('travel_trips', JSON.stringify(trips));
+            if (currentTripId) {
+                localStorage.setItem('travel_current_trip_id', currentTripId);
+            } else {
+                localStorage.removeItem('travel_current_trip_id');
+            }
+        }
+
+        // 儲存當前行程
+        function saveCurrentTrip() {
+            if (!appData || !currentTripId) return;
+            const index = trips.findIndex(t => t.id === currentTripId);
+            if (index >= 0) {
+                trips[index] = { ...appData };
+            }
+            saveTrips();
+        }
+
+        // 切換側邊欄
+        function toggleSidebar() {
+            const overlay = document.getElementById('sidebar-overlay');
+            const menu = document.getElementById('sidebar-menu');
+            const isActive = overlay.classList.contains('active');
+            
+            overlay.classList.toggle('active');
+            menu.classList.toggle('active');
+            
+            // 鎖定/解鎖背景滾動
+            if (!isActive) {
+                document.body.classList.add('sidebar-open');
+            } else {
+                document.body.classList.remove('sidebar-open');
+            }
+        }
+
+        // 渲染行程列表
+        function renderTripList() {
+            const container = document.getElementById('trip-list');
+            container.innerHTML = '';
+            
+            trips.forEach((trip, index) => {
+                const isActive = trip.id === currentTripId;
+                const div = document.createElement('div');
+                div.className = `p-4 muji-border cursor-pointer transition-colors ${isActive ? 'bg-muji-light border-l-2 border-l-muji-primary' : 'bg-white hover:bg-muji-light'}`;
+                div.onclick = () => selectTrip(trip.id);
+                
+                const startDate = trip.meta?.startDate ? trip.meta.startDate.replace(/-/g, '.') : 'TBD';
+                const endDate = trip.meta?.endDate && trip.meta.endDate.length > 5 ? trip.meta.endDate.substring(5).replace(/-/g, '.') : (trip.meta?.endDate || 'TBD');
+                div.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="font-medium text-muji-accent">${trip.meta?.title || '未命名行程'}</h3>
+                        <button onclick="event.stopPropagation(); deleteTrip('${trip.id}')" class="btn-delete ml-2"><i class="fas fa-trash-alt text-xs"></i></button>
+                    </div>
+                    <p class="text-xs text-muji-secondary">
+                        ${startDate} - ${endDate}
+                    </p>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // 選擇行程
+        function selectTrip(tripId) {
+            currentTripId = tripId;
+            const selectedTrip = trips.find(t => t.id === tripId);
+            if (selectedTrip) {
+                appData = { ...selectedTrip };
+                // 確保所有必要欄位存在
+                if (!appData.meta) {
+                    appData.meta = { title: "新行程", startDate: "", endDate: "" };
+                }
+                if (!appData.flights) appData.flights = [];
+                if (!appData.hotels) appData.hotels = [];
+                if (!appData.itinerary) appData.itinerary = [];
+                if (!appData.guides) appData.guides = [];
+                saveTrips();
+                renderAll();
+                renderTripList();
+                toggleSidebar();
+                // 重新載入清單和記帳資料
+                initWalletAndLists();
+                // 設定 Firebase 監聽和同步
+                setTimeout(() => {
+                    setupFirebaseListeners();
+                    syncCurrentUserToFirebase();
+                }, 1500); // 等待 Firebase 初始化完成
+            }
+        }
+
+        // 新增行程
+        function addNewTrip() {
+            const newTrip = createDefaultTrip();
+            newTrip.id = Date.now().toString();
+            newTrip.meta.title = `行程 ${trips.length + 1}`;
+            trips.push(newTrip);
+            selectTrip(newTrip.id);
+        }
+
+        // 刪除行程
+        function deleteTrip(tripId) {
+            if (confirm('確定要刪除這個行程嗎？')) {
+                trips = trips.filter(t => t.id !== tripId);
+                if (trips.length === 0) {
+                    // 刪除所有行程
+                    currentTripId = null;
+                    appData = null;
+                } else if (currentTripId === tripId) {
+                    // 刪除的是當前行程，切換到第一個
+                    currentTripId = trips[0].id;
+                    appData = { ...trips[0] };
+                }
+                saveTrips();
+                renderTripList();
+                renderAll();
+                if (appData) {
+                    initWalletAndLists();
+                }
+            }
+        }
+
+        // --- RENDER ---
+        function renderAll() {
+            const emptyState = document.getElementById('empty-state');
+            const allSections = document.querySelectorAll('.view-section');
+            
+            if (!appData || trips.length === 0) {
+                // 顯示空狀態
+                emptyState.classList.remove('hidden');
+                allSections.forEach(section => section.classList.add('hidden'));
+                // Header 顯示提示
+                const headerContainer = document.getElementById('header-info');
+                headerContainer.innerHTML = `
+                    <h1 class="text-xl font-medium tracking-wide text-muji-accent mb-1">旅行規劃</h1>
+                    <div class="flex items-center gap-2 text-sm text-muji-secondary"><i class="far fa-calendar-alt"></i> 點擊選單新增行程</div>
+                `;
+                // 隱藏右上角的按鈕
+                const addDayBtn = document.getElementById('add-day-header-btn');
+                const editBtn = document.getElementById('edit-toggle-btn');
+                if (addDayBtn) addDayBtn.classList.add('hidden');
+                if (editBtn) editBtn.classList.add('hidden');
+                return;
+            } else {
+                // 隱藏空狀態，顯示正常內容
+                emptyState.classList.add('hidden');
+                // 顯示當前選中的 section
+                const currentSection = document.querySelector('.view-section.block');
+                if (currentSection) currentSection.classList.remove('hidden');
+                // 根據編輯模式顯示/隱藏右上角按鈕
+                const addDayBtn = document.getElementById('add-day-header-btn');
+                const editBtn = document.getElementById('edit-toggle-btn');
+                if (editBtn) editBtn.classList.remove('hidden');
+                if (addDayBtn) {
+                    if (isEditMode) {
+                        addDayBtn.classList.add('hidden');
+                    } else {
+                        addDayBtn.classList.remove('hidden');
+                    }
+                }
+            }
+            
+            renderHeader();
+            renderLogistics();
+            renderPlan();
+            renderGuide();
+            // 無論是否編輯模式都要初始化拖移
+            setTimeout(initSortables, 100);
+        }
+
+        function renderHeader() {
+            const container = document.getElementById('header-info');
+            // 如果沒有行程，不渲染
+            if (!appData || !appData.meta) {
+                return;
+            }
+            
+            const meta = appData.meta;
+            
+            if (isEditMode) {
+                container.innerHTML = `
+                    <input oninput="updateMeta('title', this.value)" value="${meta.title || ''}" class="edit-input font-medium text-base sm:text-lg mb-1.5 text-center w-full max-w-full box-border py-2">
+                    <div class="flex gap-1 sm:gap-2 items-center justify-center w-full max-w-full">
+                        <input type="date" onchange="updateMeta('startDate', this.value)" value="${meta.startDate || ''}" class="edit-input text-xs w-24 sm:w-28 text-center flex-shrink-0 py-1.5">
+                        <span class="text-muji-secondary text-xs flex-shrink-0">to</span>
+                        <input type="date" onchange="updateMeta('endDate', this.value)" value="${meta.endDate || ''}" class="edit-input text-xs w-24 sm:w-28 text-center flex-shrink-0 py-1.5">
+                    </div>`;
+            } else {
+                let start = meta.startDate ? meta.startDate.replace(/-/g, '.') : 'TBD';
+                let end = meta.endDate ? meta.endDate.substring(5).replace(/-/g, '.') : 'TBD';
+                container.innerHTML = `
+                    <h1 class="text-lg sm:text-xl font-medium tracking-wide text-muji-accent mb-0.5 text-center">${meta.title || '新行程'}</h1>
+                    <div class="flex items-center justify-center gap-2 text-xs sm:text-sm text-muji-secondary"><i class="far fa-calendar-alt"></i> ${start} - ${end}</div>`;
+            }
+        }
+
+        function renderLogistics() {
+            // 如果沒有行程，不渲染
+            if (!appData) return;
+            
+            const fContainer = document.getElementById('flight-container');
+            fContainer.innerHTML = '';
+            if (!appData.flights) appData.flights = [];
+            appData.flights.forEach((f, i) => {
+                if(isEditMode) {
+                    fContainer.innerHTML += `
+                        <div class="bg-muji-light muji-border p-3 relative min-w-0">
+                            <button onclick="deleteFlight(${i})" class="absolute top-2 right-2 btn-delete flex-shrink-0"><i class="fas fa-times text-xs"></i></button>
+                            <div class="flex gap-1 sm:gap-2 mb-2 min-w-0"><input value="${f.type}" oninput="updateFlight(${i}, 'type', this.value)" class="edit-input w-14 sm:w-16 text-center text-xs flex-shrink-0"><input value="${f.code}" oninput="updateFlight(${i}, 'code', this.value)" class="edit-input flex-1 text-xs font-medium min-w-0"></div>
+                            <div class="flex gap-1 sm:gap-2 min-w-0"><input value="${f.time}" oninput="updateFlight(${i}, 'time', this.value)" class="edit-input w-14 sm:w-16 text-center text-xs flex-shrink-0"><input value="${f.note}" oninput="updateFlight(${i}, 'note', this.value)" class="edit-input flex-1 text-xs min-w-0"></div>
+                        </div>`;
+                } else {
+                    fContainer.innerHTML += `
+                        <div class="flex justify-between items-center muji-border-b pb-2 last:border-0 last:pb-0">
+                            <div class="flex items-center gap-2"><span class="text-xs bg-muji-light text-muji-accent px-2 py-0.5">${f.type}</span><span class="font-medium text-muji-text">${f.code}</span></div>
+                            <div class="text-right"><div class="text-sm font-medium text-muji-accent">${f.time}</div><div class="text-[10px] text-muji-secondary">${f.note}</div></div>
+                        </div>`;
+                }
+            });
+
+            const hContainer = document.getElementById('hotel-container');
+            hContainer.innerHTML = '';
+            if (!appData.hotels) appData.hotels = [];
+            appData.hotels.forEach((h, i) => {
+                if(isEditMode) {
+                    hContainer.innerHTML += `
+                        <div class="bg-muji-light muji-border p-3 relative min-w-0">
+                            <button onclick="deleteHotel(${i})" class="absolute top-2 right-2 btn-delete flex-shrink-0"><i class="fas fa-times text-xs"></i></button>
+                            <input value="${h.name}" oninput="updateHotel(${i}, 'name', this.value)" class="edit-input mb-2 font-medium min-w-0" placeholder="飯店名稱">
+                            <div class="flex gap-1 sm:gap-2 mb-2 min-w-0"><input value="${h.dates}" oninput="updateHotel(${i}, 'dates', this.value)" class="edit-input w-28 sm:w-1/3 text-xs flex-shrink-0" placeholder="日期"><input value="${h.address}" oninput="updateHotel(${i}, 'address', this.value)" class="edit-input flex-1 text-xs min-w-0" placeholder="地址"></div>
+                            <input value="${h.link}" oninput="updateHotel(${i}, 'link', this.value)" class="edit-input text-xs text-muji-primary min-w-0" placeholder="地圖連結">
+                        </div>`;
+                } else {
+                    hContainer.innerHTML += `
+                        <div class="flex justify-between items-start muji-border-b pb-3 last:border-0 last:pb-0">
+                            <div><h4 class="font-medium text-muji-text text-sm">${h.name}</h4><p class="text-xs text-muji-secondary mt-1"><span class="bg-muji-light px-1 mr-1">${h.dates}</span> <i class="fas fa-map-marker-alt"></i> ${h.address}</p></div>
+                            ${h.link ? `<a href="${formatUrl(h.link)}" target="_blank" class="text-muji-secondary hover:text-muji-primary"><i class="fas fa-external-link-alt"></i></a>` : ''}
+                        </div>`;
+                }
+            });
+        }
+
+        function toggleDayExpand(dIndex) {
+            if (expandedDays.has(dIndex)) {
+                expandedDays.delete(dIndex);
+            } else {
+                expandedDays.add(dIndex);
+            }
+            renderPlan();
+        }
+
+        function renderPlan() {
+            // 如果沒有行程，不渲染
+            if (!appData) {
+                const planDiv = document.getElementById('itinerary-container');
+                if (planDiv) planDiv.innerHTML = '';
+                return;
+            }
+            
+            const planDiv = document.getElementById('itinerary-container');
+            planDiv.innerHTML = '';
+            if (!appData.itinerary) appData.itinerary = [];
+            
+            appData.itinerary.forEach((day, dIndex) => {
+                // 確保每個 day 都有 events 陣列
+                if (!day.events) day.events = [];
+                const isExpanded = expandedDays.has(dIndex);
+                const eventCount = day.events.length;
+                
+                const dayCard = document.createElement('div');
+                dayCard.className = "mb-4";
+                
+                let eventsList;
+                
+                if (isEditMode) {
+                    dayCard.innerHTML = `
+                        <div class="bg-white muji-border p-4 muji-shadow min-w-0">
+                            <div class="flex items-center gap-1 sm:gap-2 mb-4 min-w-0">
+                                <button onclick="deleteDay(${dIndex})" class="btn-delete flex-shrink-0"><i class="fas fa-times text-xs"></i></button>
+                                <input oninput="updateDay(${dIndex}, 'day', this.value)" value="${day.day}" class="edit-input w-20 sm:w-24 font-medium text-center flex-shrink-0">
+                                <input oninput="updateDay(${dIndex}, 'title', this.value)" value="${day.title}" class="edit-input flex-1 font-medium min-w-0">
+                            </div>
+                            <div id="day-events-${dIndex}" class="space-y-4 mb-4"></div>
+                            <button type="button" onclick="addEvent(${dIndex})" class="w-full text-center py-3 mt-2 mb-2 muji-border border-dashed text-muji-secondary text-xs cursor-pointer hover:bg-muji-light transition-colors">
+                                <i class="fas fa-plus mr-1"></i> 新增行程
+                            </button>
+                        </div>`;
+                    // 先將 dayCard 添加到 DOM
+                    planDiv.appendChild(dayCard);
+                    // 然後找 eventsList
+                    eventsList = document.getElementById(`day-events-${dIndex}`);
+                } else {
+                    // 卡片式顯示
+                    const dayHeader = document.createElement('div');
+                    dayHeader.className = 'bg-white muji-border p-4 muji-shadow cursor-pointer hover:bg-muji-light transition-colors';
+                    dayHeader.onclick = (e) => {
+                        e.stopPropagation();
+                        toggleDayExpand(dIndex);
+                    };
+                    dayHeader.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1">
+                                <h3 class="font-medium text-lg text-muji-accent mb-1">${day.day}</h3>
+                                <p class="text-sm text-muji-secondary mb-2">${day.title}</p>
+                                <div class="flex items-center gap-2 text-xs text-muji-secondary">
+                                    <i class="fas fa-calendar-check"></i>
+                                    <span>${eventCount} 個行程</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-chevron-${isExpanded ? 'up' : 'down'} text-muji-secondary"></i>
+                            </div>
+                        </div>`;
+                    dayCard.appendChild(dayHeader);
+                    
+                    eventsList = document.createElement('div');
+                    eventsList.id = `day-events-${dIndex}`;
+                    eventsList.className = `sortable-events space-y-4 ${isExpanded ? 'block' : 'hidden'} mt-4`;
+                    eventsList.onclick = (e) => e.stopPropagation();
+                    dayCard.appendChild(eventsList);
+                    
+                    // 將 dayCard 添加到 DOM
+                    planDiv.appendChild(dayCard);
+                }
+
+                if (!eventsList) {
+                    return;
+                }
+                
+                // 只在編輯模式下設定 className（非編輯模式已經設定過了）
+                if (isEditMode) {
+                    eventsList.className = "sortable-events space-y-4";
+                } else {
+                    // 非編輯模式下，確保顯示/隱藏狀態正確
+                    const isExpanded = expandedDays.has(dIndex);
+                    if (isExpanded) {
+                        eventsList.classList.remove('hidden');
+                        eventsList.classList.add('block');
+                    } else {
+                        eventsList.classList.remove('block');
+                        eventsList.classList.add('hidden');
+                    }
+                }
+                eventsList.dataset.dayIndex = dIndex;
+
+                day.events.forEach((evt, eIndex) => {
+                    // 確保數據結構兼容
+                    if (!evt.links) evt.links = evt.link ? [evt.link] : [];
+                    if (!evt.images) evt.images = [];
+                    
+                    const evtDiv = document.createElement('div');
+                    evtDiv.className = "mb-4 group relative";
+                    
+                    if (isEditMode) {
+                        let linksHTML = '';
+                        (evt.links || []).forEach((link, lIdx) => {
+                            linksHTML += `                            <div class="flex gap-1 sm:gap-2 items-center mb-1 min-w-0">
+                                <input oninput="updateEventLink(${dIndex}, ${eIndex}, ${lIdx}, this.value)" value="${link}" class="edit-input text-xs text-muji-primary flex-1 min-w-0" placeholder="連結 URL">
+                                <button onclick="deleteEventLink(${dIndex}, ${eIndex}, ${lIdx})" class="btn-delete flex-shrink-0"><i class="fas fa-times text-xs"></i></button>
+                            </div>`;
+                        });
+                        
+                        let imagesHTML = '';
+                        (evt.images || []).forEach((img, imgIdx) => {
+                            imagesHTML += `<div class="relative inline-block mr-2 mb-2">
+                                <img src="${img}" class="w-16 h-16 sm:w-20 sm:h-20 object-cover muji-border flex-shrink-0">
+                                <button onclick="deleteEventImage(${dIndex}, ${eIndex}, ${imgIdx})" class="absolute -top-1 -right-1 bg-muji-accent text-white w-5 h-5 flex items-center justify-center text-xs"><i class="fas fa-times"></i></button>
+                            </div>`;
+                        });
+                        
+                        evtDiv.innerHTML = `
+                            <div class="bg-white muji-border p-3 muji-shadow flex gap-2 items-start min-w-0">
+                                <div class="drag-handle mt-2 flex-shrink-0"><i class="fas fa-grip-vertical"></i></div>
+                                <div class="flex-1 space-y-2 min-w-0">
+                                    <div class="flex gap-1 sm:gap-2 items-center">
+                                        <input oninput="updateEvent(${dIndex}, ${eIndex}, 'startTime', this.value)" value="${evt.startTime || ''}" class="edit-input w-14 sm:w-16 text-xs text-center flex-shrink-0" placeholder="開始">
+                                        <span class="text-muji-secondary self-center flex-shrink-0">-</span>
+                                        <input oninput="updateEvent(${dIndex}, ${eIndex}, 'endTime', this.value)" value="${evt.endTime || ''}" class="edit-input w-14 sm:w-16 text-xs text-center flex-shrink-0" placeholder="結束">
+                                        <div class="flex-1 flex justify-end items-center gap-1 sm:gap-2 min-w-0 flex-shrink-0">
+                                            <label class="cursor-pointer text-muji-primary text-base sm:text-lg flex-shrink-0"><input type="checkbox" ${evt.highlight ? 'checked' : ''} onchange="updateEvent(${dIndex}, ${eIndex}, 'highlight', this.checked)" class="hidden peer"><i class="far fa-star peer-checked:fas peer-checked:text-muji-primary text-muji-border"></i></label>
+                                            <button onclick="deleteEvent(${dIndex}, ${eIndex})" class="btn-delete flex-shrink-0"><i class="fas fa-trash-alt text-xs"></i></button>
+                                        </div>
+                                    </div>
+                                    <input oninput="updateEvent(${dIndex}, ${eIndex}, 'title', this.value)" value="${evt.title || ''}" class="edit-input font-medium min-w-0" placeholder="標題" id="evt-title-${dIndex}-${eIndex}">
+                                    <div class="space-y-1">
+                                        <div class="text-xs text-muji-secondary font-medium mb-1">連結：</div>
+                                        ${linksHTML}
+                                        <button onclick="addEventLink(${dIndex}, ${eIndex})" class="text-xs text-muji-primary muji-border px-2 py-1 hover:bg-muji-light transition-colors"><i class="fas fa-plus mr-1"></i> 新增連結</button>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <div class="text-xs text-muji-secondary font-medium mb-1">圖片：</div>
+                                        <div class="flex flex-wrap gap-2 min-w-0">
+                                            ${imagesHTML}
+                                            <label class="w-16 h-16 sm:w-20 sm:h-20 muji-border border-dashed flex items-center justify-center cursor-pointer hover:bg-muji-light transition-colors flex-shrink-0">
+                                                <i class="fas fa-camera text-muji-secondary"></i>
+                                                <input type="file" accept="image/*" multiple class="hidden" onchange="handleEventImages(event, ${dIndex}, ${eIndex})">
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <input oninput="updateEvent(${dIndex}, ${eIndex}, 'desc', this.value)" value="${evt.desc || ''}" class="edit-input text-xs text-muji-secondary min-w-0" placeholder="備註... (Enter 新增)" onkeydown="handleEnterKey(event, ${dIndex}, ${eIndex})" id="evt-desc-${dIndex}-${eIndex}">
+                                </div>
+                            </div>`;
+                    } else {
+                        const highlightClass = evt.highlight ? 'border-l-2 border-muji-primary bg-muji-light' : 'bg-white';
+                        const icon = evt.highlight ? '<i class="fas fa-star text-muji-primary mr-2"></i>' : '';
+                        const timeDisplay = evt.endTime ? `${evt.startTime} - ${evt.endTime}` : evt.startTime;
+                        
+                        // 圖片區域 - 如果有圖片，顯示在第一張
+                        let imageSection = '';
+                        if (evt.images && evt.images.length > 0) {
+                            imageSection = `<div class="w-full h-48 mb-3 overflow-hidden">
+                                <img src="${evt.images[0]}" onclick="viewImage('${evt.images[0]}')" class="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity">
+                            </div>`;
+                            // 如果有多張圖片，顯示縮圖
+                            if (evt.images.length > 1) {
+                                let thumbnails = '';
+                                evt.images.slice(1, 4).forEach((img, idx) => {
+                                    thumbnails += `<img src="${img}" onclick="viewImage('${img}')" class="w-16 h-16 object-cover muji-border cursor-pointer hover:opacity-90 transition-opacity">`;
+                                });
+                                if (evt.images.length > 4) {
+                                    thumbnails += `<div class="w-16 h-16 bg-muji-light muji-border flex items-center justify-center text-xs text-muji-secondary font-medium">+${evt.images.length - 4}</div>`;
+                                }
+                                imageSection += `<div class="flex gap-2 mb-3">${thumbnails}</div>`;
+                            }
+                        }
+                        
+                        // 連結區域 - 垂直排列
+                        let linksHTML = '';
+                        if (evt.links && evt.links.length > 0) {
+                            linksHTML = '<div class="space-y-2 mb-3">';
+                            evt.links.forEach(link => {
+                                const isXHS = isXiaohongshuUrl(link);
+                                if (isXHS) {
+                                    linksHTML += `<a href="${formatUrl(link)}" target="_blank" rel="noopener noreferrer" class="block w-full bg-white muji-border p-3 hover:bg-muji-light transition-colors">
+                                        <div class="flex items-center gap-2">
+                                            <img src="https://sns-img-qc.xhscdn.com/static/img/logo-red.png" class="w-5 h-5" onerror="this.style.display='none'">
+                                            <span class="text-sm text-muji-text font-medium flex-1">小紅書連結</span>
+                                            <i class="fas fa-external-link-alt text-xs text-muji-secondary"></i>
+                                        </div>
+                                    </a>`;
+                                } else {
+                                    const domain = link.replace(/^https?:\/\//, '').split('/')[0];
+                                    linksHTML += `<a href="${formatUrl(link)}" target="_blank" rel="noopener noreferrer" class="block w-full bg-white muji-border p-3 hover:bg-muji-light transition-colors">
+                                        <div class="flex items-center gap-2">
+                                            <i class="fas fa-link text-muji-primary"></i>
+                                            <span class="text-sm text-muji-text font-medium flex-1 truncate">${domain}</span>
+                                            <i class="fas fa-external-link-alt text-xs text-muji-secondary"></i>
+                                        </div>
+                                    </a>`;
+                                }
+                            });
+                            linksHTML += '</div>';
+                        }
+                        
+                        evtDiv.innerHTML = `
+                            <div class="mb-4">
+                                <div class="flex items-start gap-3">
+                                    <div class="drag-handle pt-2">
+                                        <i class="fas fa-grip-vertical text-muji-secondary"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="text-xs font-medium text-muji-secondary mb-2">${timeDisplay}</div>
+                                        <div class="${highlightClass} muji-border p-4 muji-shadow hover:bg-muji-light transition-colors">
+                                            ${imageSection}
+                                            <div class="flex items-center mb-2">
+                                                <h3 class="font-medium text-muji-accent text-base flex-1 flex items-center gap-2">${icon}${evt.title || ''}</h3>
+                                            </div>
+                                            ${evt.desc ? `<p class="text-sm text-muji-text mb-3 leading-relaxed">${evt.desc}</p>` : ''}
+                                            ${linksHTML}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>`;
+                    }
+                    eventsList.appendChild(evtDiv);
+                });
+            });
+        }
+
+        function renderGuide() {
+            // 如果沒有行程，不渲染
+            if (!appData) {
+                const container = document.getElementById('guide-container');
+                if (container) container.innerHTML = '';
+                return;
+            }
+            
+            const container = document.getElementById('guide-container');
+            container.innerHTML = '';
+            if (!appData.guides) appData.guides = [];
+            appData.guides.forEach((guide, index) => {
+                // 確保數據結構兼容
+                if (!guide.images) guide.images = [];
+                if (!guide.links) guide.links = [];
+                
+                const div = document.createElement('article');
+                div.className = "bg-white muji-border overflow-hidden muji-shadow mb-6 min-w-0 max-w-full";
+                if (isEditMode) {
+                    // Render Icon Selector
+                    let iconSelectorHTML = `<div class="flex flex-wrap gap-1 min-w-0 max-w-full items-center">`;
+                    ICON_OPTIONS.forEach(icon => {
+                        const isSelected = guide.icon === icon ? 'selected' : '';
+                        iconSelectorHTML += `<div onclick="updateGuide(${index}, 'icon', '${icon}')" class="icon-option ${isSelected}" style="width:26px;height:26px;font-size:11px;flex-shrink:0;"><i class="fas ${icon}"></i></div>`;
+                    });
+                    iconSelectorHTML += `</div>`;
+
+                    let linksHTML = '';
+                    (guide.links || []).forEach((link, lIdx) => {
+                        linksHTML += `<div class="flex gap-1 sm:gap-2 items-center mb-1 min-w-0">
+                            <input oninput="updateGuideLink(${index}, ${lIdx}, this.value)" value="${link}" class="edit-input text-xs text-muji-primary flex-1 min-w-0" placeholder="連結 URL">
+                            <button onclick="deleteGuideLink(${index}, ${lIdx})" class="btn-delete flex-shrink-0"><i class="fas fa-times text-xs"></i></button>
+                        </div>`;
+                    });
+                    
+                    let imagesHTML = '';
+                    (guide.images || []).forEach((img, imgIdx) => {
+                        imagesHTML += `<div class="relative inline-block mr-1 sm:mr-2 mb-2 flex-shrink-0">
+                            <img src="${img}" class="w-16 h-16 sm:w-24 sm:h-24 object-cover muji-border">
+                            <button onclick="deleteGuideImage(${index}, ${imgIdx})" class="absolute -top-1 -right-1 bg-muji-accent text-white w-5 h-5 flex items-center justify-center text-xs"><i class="fas fa-times"></i></button>
+                        </div>`;
+                    });
+
+                    div.innerHTML = `
+                        <div class="p-4 sm:p-5 bg-muji-light min-w-0 max-w-full box-border">
+                            <div class="flex flex-wrap items-start justify-between mb-3 min-w-0 gap-x-2 gap-y-2">
+                                <span class="text-xs font-medium text-muji-secondary flex-shrink-0 whitespace-nowrap">文章 #${index + 1}</span>
+                                <div class="flex items-center gap-1 sm:gap-2 min-w-0 flex-shrink max-w-full">
+                                    <div class="text-xs text-muji-secondary font-medium mr-1 flex-shrink-0 whitespace-nowrap">圖示:</div>
+                                    <div class="min-w-0 flex-shrink max-w-full">
+                                        ${iconSelectorHTML}
+                                    </div>
+                                    <button onclick="deleteGuide(${index})" class="btn-delete ml-1 flex-shrink-0"><i class="fas fa-times text-xs"></i></button>
+                                </div>
+                            </div>
+                            <input placeholder="標題" oninput="updateGuide(${index}, 'title', this.value)" value="${guide.title || ''}" class="edit-input mb-3 font-medium min-w-0 w-full max-w-full box-border">
+                            <div class="space-y-2 mb-3 min-w-0 w-full max-w-full">
+                                <div class="text-xs text-muji-secondary font-medium">連結：</div>
+                                ${linksHTML}
+                                <button onclick="addGuideLink(${index})" class="text-xs text-muji-primary muji-border px-2 py-1 hover:bg-white transition-colors"><i class="fas fa-plus mr-1"></i> 新增連結</button>
+                            </div>
+                            <div class="space-y-2 mb-3 min-w-0 w-full max-w-full">
+                                <div class="text-xs text-muji-secondary font-medium">圖片：</div>
+                                <div class="flex flex-wrap gap-2 min-w-0">
+                                    ${imagesHTML}
+                                    <label class="w-16 h-16 sm:w-24 sm:h-24 muji-border border-dashed flex items-center justify-center cursor-pointer hover:bg-white transition-colors flex-shrink-0">
+                                        <i class="fas fa-camera text-muji-secondary"></i>
+                                        <input type="file" accept="image/*" multiple class="hidden" onchange="handleGuideImages(event, ${index})">
+                                    </label>
+                                </div>
+                            </div>
+                            <textarea placeholder="內文..." oninput="updateGuide(${index}, 'content', this.value)" class="edit-input h-32 text-sm leading-relaxed min-w-0 w-full max-w-full resize-none box-border">${guide.content || ''}</textarea>
+                        </div>`;
+                } else {
+                    // 顯示模式：卡片式佈局
+                    // 圖片區域
+                    let imageSection = '';
+                    if (guide.images && guide.images.length > 0) {
+                        imageSection = `<div class="w-full h-56 mb-4 overflow-hidden">
+                            <img src="${guide.images[0]}" onclick="viewImage('${guide.images[0]}')" class="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity">
+                        </div>`;
+                        // 如果有多張圖片，顯示縮圖
+                        if (guide.images.length > 1) {
+                            let thumbnails = '';
+                            guide.images.slice(1, 5).forEach((img, idx) => {
+                                thumbnails += `<img src="${img}" onclick="viewImage('${img}')" class="w-20 h-20 object-cover muji-border cursor-pointer hover:opacity-90 transition-opacity">`;
+                            });
+                            if (guide.images.length > 5) {
+                                thumbnails += `<div class="w-20 h-20 bg-muji-light muji-border flex items-center justify-center text-xs text-muji-secondary font-medium">+${guide.images.length - 5}</div>`;
+                            }
+                            imageSection += `<div class="flex gap-2 mb-4">${thumbnails}</div>`;
+                        }
+                    } else {
+                        // 沒有圖片時顯示圖標背景
+                        imageSection = `<div class="w-full h-40 bg-muji-light mb-4 flex items-center justify-center">
+                            <i class="fas ${guide.icon || 'fa-heart'} text-5xl text-muji-secondary opacity-30"></i>
+                        </div>`;
+                    }
+                    
+                    // 連結區域 - 垂直排列
+                    let linksHTML = '';
+                    if (guide.links && guide.links.length > 0) {
+                        linksHTML = '<div class="space-y-2 mb-4 min-w-0 w-full max-w-full">';
+                        guide.links.forEach(link => {
+                            const isXHS = isXiaohongshuUrl(link);
+                            if (isXHS) {
+                                linksHTML += `<a href="${formatUrl(link)}" target="_blank" rel="noopener noreferrer" class="block w-full bg-white muji-border p-3 hover:bg-muji-light transition-colors min-w-0 max-w-full">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <img src="https://sns-img-qc.xhscdn.com/static/img/logo-red.png" class="w-5 h-5 flex-shrink-0" onerror="this.style.display='none'">
+                                        <span class="text-sm text-muji-text font-medium flex-1 min-w-0 truncate">小紅書連結</span>
+                                        <i class="fas fa-external-link-alt text-xs text-muji-secondary flex-shrink-0"></i>
+                                    </div>
+                                </a>`;
+                            } else {
+                                const domain = link.replace(/^https?:\/\//, '').split('/')[0];
+                                linksHTML += `<a href="${formatUrl(link)}" target="_blank" rel="noopener noreferrer" class="block w-full bg-white muji-border p-3 hover:bg-muji-light transition-colors min-w-0 max-w-full">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <i class="fas fa-link text-muji-primary flex-shrink-0"></i>
+                                        <span class="text-sm text-muji-text font-medium flex-1 min-w-0 truncate">${domain}</span>
+                                        <i class="fas fa-external-link-alt text-xs text-muji-secondary flex-shrink-0"></i>
+                                    </div>
+                                </a>`;
+                            }
+                        });
+                        linksHTML += '</div>';
+                    }
+                    
+                    div.innerHTML = `
+                        <div class="bg-white muji-border overflow-hidden muji-shadow min-w-0 max-w-full">
+                            <div class="p-4 sm:p-5 min-w-0 max-w-full box-border">
+                                <div class="flex items-center gap-2 mb-3 min-w-0">
+                                    <i class="fas ${guide.icon || 'fa-heart'} text-muji-primary flex-shrink-0"></i>
+                                    <h3 class="text-lg font-medium text-muji-accent min-w-0">${guide.title || ''}</h3>
+                                </div>
+                                ${imageSection}
+                                ${linksHTML}
+                                <div class="text-sm text-muji-text leading-7 whitespace-pre-line min-w-0 break-words">${guide.content || ''}</div>
+                            </div>
+                        </div>`;
+                }
+                container.appendChild(div);
+            });
+        }
+
+        // --- HELPERS ---
+        function formatUrl(url) {
+            if (!url) return '';
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                return 'https://' + url;
+            }
+            return url;
+        }
+
+        function isXiaohongshuUrl(url) {
+            if (!url) return false;
+            return url.includes('xiaohongshu.com') || url.includes('xhslink.com') || url.includes('xhs');
+        }
+
+        function getXiaohongshuPreview(url) {
+            return `https://api.xiaohongshu.com/api/sns/web/v1/feed?source_note_id=${url}`;
+        }
+
+        function compressImage(file, callback) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const maxWidth = 800;
+                    let w = img.width, h = img.height;
+                    if (w > maxWidth) {
+                        h *= maxWidth / w;
+                        w = maxWidth;
+                    }
+                    canvas.width = w;
+                    canvas.height = h;
+                    ctx.drawImage(img, 0, 0, w, h);
+                    callback(canvas.toDataURL('image/jpeg', 0.7));
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function initSortables() {
+            // 先清除所有現有的Sortable實例
+            document.querySelectorAll('.sortable-events').forEach(el => {
+                if (el.sortableInstance) {
+                    el.sortableInstance.destroy();
+                }
+            });
+            
+            // 初始化行程拖移 - 無論編輯模式與否都可以拖移
+            document.querySelectorAll('.sortable-events').forEach(el => {
+                el.sortableInstance = new Sortable(el, {
+                    group: 'itinerary-events',
+                    handle: '.drag-handle',
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+                    disabled: false, // 始終啟用拖移
+                    onEnd: function (evt) {
+                        const fromDay = parseInt(evt.from.dataset.dayIndex);
+                        const toDay = parseInt(evt.to.dataset.dayIndex);
+                        const movedItem = appData.itinerary[fromDay].events.splice(evt.oldIndex, 1)[0];
+                        appData.itinerary[toDay].events.splice(evt.newIndex, 0, movedItem);
+                        save();
+                        setTimeout(renderPlan, 0); 
+                    }
+                });
+            });
+            
+            // 初始化清單拖移
+            const checkListEl = document.getElementById('checklist-container');
+            if(checkListEl) {
+                if (checkListEl.sortableInstance) {
+                    checkListEl.sortableInstance.destroy();
+                }
+                checkListEl.sortableInstance = new Sortable(checkListEl, {
+                    handle: '.drag-handle',
+                    animation: 150,
+                    onEnd: function (evt) {
+                        const movedItem = checklist.splice(evt.oldIndex, 1)[0];
+                        checklist.splice(evt.newIndex, 0, movedItem);
+                        localStorage.setItem('travel_checklist', JSON.stringify(checklist));
+                    }
+                });
+            }
+        }
+
+        // --- LOGIC ---
+        function toggleEditMode() {
+            if (!appData) return; // 沒有行程時不允許編輯
+            isEditMode = !isEditMode;
+            const btn = document.getElementById('edit-toggle-btn');
+            const addDayBtn = document.getElementById('add-day-btn');
+            const addGuideBtn = document.getElementById('add-guide-btn');
+            const addFlightBtn = document.getElementById('add-flight-btn');
+            const addHotelBtn = document.getElementById('add-hotel-btn');
+            const addDayHeaderBtn = document.getElementById('add-day-header-btn');
+            
+            if (isEditMode) {
+                btn.innerHTML = '<i class="fas fa-check text-white text-sm"></i>';
+                btn.className = "w-9 h-9 bg-muji-primary text-white flex items-center justify-center active:opacity-80 transition-opacity";
+                addDayBtn.classList.remove('hidden'); addGuideBtn.classList.remove('hidden');
+                addFlightBtn.classList.remove('hidden'); addHotelBtn.classList.remove('hidden');
+                if (addDayHeaderBtn) addDayHeaderBtn.classList.add('hidden');
+            } else {
+                btn.innerHTML = '<i class="fas fa-pen text-sm"></i>';
+                btn.className = "w-9 h-9 bg-white muji-border flex items-center justify-center active:opacity-80 transition-opacity text-muji-primary";
+                addDayBtn.classList.add('hidden'); addGuideBtn.classList.add('hidden');
+                addFlightBtn.classList.add('hidden'); addHotelBtn.classList.add('hidden');
+                if (addDayHeaderBtn) addDayHeaderBtn.classList.remove('hidden');
+            }
+            renderAll();
+        }
+
+        function save() { 
+            saveCurrentTrip(); 
+            syncTripDataToFirebase();
+        }
+        function resetData() { 
+            if(confirm("重置資料？")) { 
+                appData = createDefaultTrip();
+                appData.id = currentTripId;
+                const index = trips.findIndex(t => t.id === currentTripId);
+                if (index >= 0) {
+                    trips[index] = appData;
+                }
+                saveTrips();
+                location.reload(); 
+            } 
+        }
+
+        function updateMeta(key, val) { 
+            if (!appData) return; // 沒有行程時不執行
+            if (!appData.meta) {
+                appData.meta = { title: "新行程", startDate: "", endDate: "" };
+            }
+            appData.meta[key] = val; 
+            save(); 
+        }
+        function addFlight() { if (!appData) return; if (!appData.flights) appData.flights = []; appData.flights.push({ type: "單程", code: "", time: "", note: "" }); save(); renderLogistics(); }
+        function updateFlight(i, key, val) { appData.flights[i][key] = val; save(); }
+        function deleteFlight(i) { appData.flights.splice(i, 1); save(); renderLogistics(); }
+        function addHotel() { if (!appData) return; if (!appData.hotels) appData.hotels = []; appData.hotels.push({ name: "", dates: "", address: "", link: "" }); save(); renderLogistics(); }
+        function updateHotel(i, key, val) { if (!appData) return; appData.hotels[i][key] = val; save(); }
+        function deleteHotel(i) { if (!appData) return; appData.hotels.splice(i, 1); save(); renderLogistics(); }
+        function updateDay(idx, key, val) { if (!appData) return; appData.itinerary[idx][key] = val; save(); }
+        function addNewDay() { if (!appData) return; if (!appData.itinerary) appData.itinerary = []; appData.itinerary.push({ day: `Day ${appData.itinerary.length + 1}`, title: "新的一天", events: [] }); save(); renderPlan(); }
+        function deleteDay(idx) { if(confirm("刪除這整天？")) { appData.itinerary.splice(idx, 1); save(); renderPlan(); } }
+        function updateEvent(dIdx, eIdx, key, val) { 
+            if (!appData.itinerary[dIdx].events[eIdx].links) appData.itinerary[dIdx].events[eIdx].links = [];
+            if (!appData.itinerary[dIdx].events[eIdx].images) appData.itinerary[dIdx].events[eIdx].images = [];
+            appData.itinerary[dIdx].events[eIdx][key] = val; 
+            save(); 
+        }
+        function addEvent(dIdx) { 
+            console.log('addEvent called with dIdx:', dIdx);
+            if (!appData) {
+                console.log('No appData');
+                return;
+            }
+            if (!appData.itinerary) appData.itinerary = [];
+            if (dIdx < 0 || dIdx >= appData.itinerary.length) {
+                console.log('Invalid dIdx:', dIdx, 'length:', appData.itinerary.length);
+                return;
+            }
+            if (!appData.itinerary[dIdx]) {
+                console.log('Day not found at index:', dIdx);
+                return;
+            }
+            if (!appData.itinerary[dIdx].events) {
+                appData.itinerary[dIdx].events = [];
+            }
+            appData.itinerary[dIdx].events.push({ startTime: "", endTime: "", title: "", links: [], images: [], desc: "", highlight: false }); 
+            console.log('Event added, total events:', appData.itinerary[dIdx].events.length);
+            save(); 
+            renderPlan(); 
+        }
+        function deleteEvent(dIdx, eIdx) { if (!appData) return; appData.itinerary[dIdx].events.splice(eIdx, 1); save(); renderPlan(); }
+        function handleEnterKey(event, dIdx, eIdx) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                appData.itinerary[dIdx].events.splice(eIdx + 1, 0, { startTime: "", endTime: "", title: "", links: [], images: [], desc: "", highlight: false });
+                save(); renderPlan();
+                setTimeout(() => { const next = document.getElementById(`evt-title-${dIdx}-${eIdx + 1}`); if(next) next.focus(); }, 50);
+            }
+        }
+        // 行程事件連結和圖片處理
+        function addEventLink(dIdx, eIdx) {
+            if (!appData.itinerary[dIdx].events[eIdx].links) appData.itinerary[dIdx].events[eIdx].links = [];
+            appData.itinerary[dIdx].events[eIdx].links.push("");
+            save(); renderPlan();
+        }
+        function updateEventLink(dIdx, eIdx, lIdx, val) {
+            if (!appData.itinerary[dIdx].events[eIdx].links) appData.itinerary[dIdx].events[eIdx].links = [];
+            appData.itinerary[dIdx].events[eIdx].links[lIdx] = val;
+            save();
+        }
+        function deleteEventLink(dIdx, eIdx, lIdx) {
+            appData.itinerary[dIdx].events[eIdx].links.splice(lIdx, 1);
+            save(); renderPlan();
+        }
+        function handleEventImages(event, dIdx, eIdx) {
+            const files = Array.from(event.target.files);
+            if (!appData.itinerary[dIdx].events[eIdx].images) appData.itinerary[dIdx].events[eIdx].images = [];
+            let processed = 0;
+            files.forEach(file => {
+                compressImage(file, (base64) => {
+                    appData.itinerary[dIdx].events[eIdx].images.push(base64);
+                    processed++;
+                    if (processed === files.length) {
+                        save(); renderPlan();
+                    }
+                });
+            });
+        }
+        function deleteEventImage(dIdx, eIdx, imgIdx) {
+            appData.itinerary[dIdx].events[eIdx].images.splice(imgIdx, 1);
+            save(); renderPlan();
+        }
+        // 導覽處理函數
+        function updateGuide(idx, key, val) { 
+            if (!appData.guides[idx].links) appData.guides[idx].links = [];
+            if (!appData.guides[idx].images) appData.guides[idx].images = [];
+            appData.guides[idx][key] = val; 
+            save(); 
+            renderGuide(); 
+        }
+        function addNewGuide() { 
+            appData.guides.push({ title: "", content: "", icon: "fa-heart", images: [], links: [] }); 
+            save(); 
+            renderGuide(); 
+        }
+        function deleteGuide(idx) { if(confirm("刪除？")) { appData.guides.splice(idx, 1); save(); renderGuide(); } }
+        function addGuideLink(idx) {
+            if (!appData.guides[idx].links) appData.guides[idx].links = [];
+            appData.guides[idx].links.push("");
+            save(); renderGuide();
+        }
+        function updateGuideLink(idx, lIdx, val) {
+            if (!appData.guides[idx].links) appData.guides[idx].links = [];
+            appData.guides[idx].links[lIdx] = val;
+            save();
+        }
+        function deleteGuideLink(idx, lIdx) {
+            appData.guides[idx].links.splice(lIdx, 1);
+            save(); renderGuide();
+        }
+        function handleGuideImages(event, idx) {
+            const files = Array.from(event.target.files);
+            if (!appData.guides[idx].images) appData.guides[idx].images = [];
+            let processed = 0;
+            files.forEach(file => {
+                compressImage(file, (base64) => {
+                    appData.guides[idx].images.push(base64);
+                    processed++;
+                    if (processed === files.length) {
+                        save(); renderGuide();
+                    }
+                });
+            });
+        }
+        function deleteGuideImage(idx, imgIdx) {
+            appData.guides[idx].images.splice(imgIdx, 1);
+            save(); renderGuide();
+        }
+
+        // --- LISTS & WALLET ---
+        let checklist = JSON.parse(localStorage.getItem('travel_checklist')) || [{text: '護照', checked: false, highlight: false}];
+        let expenses = JSON.parse(localStorage.getItem('travel_expenses')) || [];
+        let currentPhotoBase64 = null;
+
+        // 幣別符號對應
+        const CURRENCY_SYMBOLS = {
+            'JPY': '¥',
+            'USD': '$',
+            'EUR': '€',
+            'CNY': '¥',
+            'KRW': '₩',
+            'GBP': '£',
+            'HKD': 'HK$',
+            'THB': '฿'
+        };
+
+        // 幣別中文名稱對應
+        const CURRENCY_NAMES = {
+            'JPY': '日圓',
+            'USD': '美金',
+            'EUR': '歐元',
+            'CNY': '人民幣',
+            'KRW': '韓元',
+            'GBP': '英鎊',
+            'HKD': '港幣',
+            'THB': '泰銖'
+        };
+
+        function getCurrencyName(currency) {
+            return CURRENCY_NAMES[currency] || currency;
+        }
+
+        // 預設匯率（當 API 失敗時使用）
+        const DEFAULT_RATES = {
+            'JPY': 0.22,
+            'USD': 0.032,
+            'EUR': 0.029,
+            'CNY': 0.23,
+            'KRW': 42.5,
+            'GBP': 0.025,
+            'HKD': 0.25,
+            'THB': 1.1
+        };
+
+        function getSelectedCurrency() {
+            const select = document.getElementById('target-currency');
+            return select ? select.value : 'JPY';
+        }
+
+        function getCurrencySymbol(currency) {
+            return CURRENCY_SYMBOLS[currency] || currency;
+        }
+
+        function onCurrencyChange() {
+            const currency = getSelectedCurrency();
+            localStorage.setItem('travel_target_currency', currency);
+            fetchExchangeRate();
+        }
+
+        function fetchExchangeRate() {
+            const targetCurrency = getSelectedCurrency();
+            // 使用免費的 API 抓取匯率 (以 TWD 為基準)
+            fetch('https://api.exchangerate-api.com/v4/latest/TWD')
+                .then(res => res.json())
+                .then(data => {
+                    const rate = data.rates[targetCurrency];
+                    if (rate && !isNaN(rate)) {
+                        // 更新匯率顯示和隱藏輸入框的值
+                        document.getElementById('exchange-rate').value = rate.toFixed(4);
+                        // 顯示匯率為 "1 TWD = X [幣別]"
+                        const currencyName = getCurrencyName(targetCurrency);
+                        document.getElementById('exchange-rate-display').innerText = `1 TWD = ${rate.toFixed(2)} ${currencyName}`;
+                        // 更新幣別顯示
+                        document.getElementById('target-currency-display').innerText = currencyName;
+                        document.getElementById('currency-symbol').innerText = getCurrencySymbol(targetCurrency);
+                        // 保存到 localStorage
+                        localStorage.setItem('travel_rate', rate.toFixed(4));
+                        // 更新總額顯示
+                        renderExpenses();
+                    }
+                })
+                .catch(err => {
+                    console.error('匯率獲取失敗:', err);
+                    // 如果獲取失敗，使用保存的匯率或預設值
+                    const savedRate = localStorage.getItem('travel_rate') || DEFAULT_RATES[targetCurrency] || '0.22';
+                    document.getElementById('exchange-rate').value = savedRate;
+                    const rate = parseFloat(savedRate);
+                    const currencyName = getCurrencyName(targetCurrency);
+                    document.getElementById('exchange-rate-display').innerText = `1 TWD = ${rate.toFixed(2)} ${currencyName}`;
+                    document.getElementById('target-currency-display').innerText = currencyName;
+                    document.getElementById('currency-symbol').innerText = getCurrencySymbol(targetCurrency);
+                    renderExpenses();
+                });
+        }
+
+        function initWalletAndLists() {
+            // 恢復保存的幣別選擇
+            const savedCurrency = localStorage.getItem('travel_target_currency') || 'JPY';
+            const currencySelect = document.getElementById('target-currency');
+            if (currencySelect) {
+                currencySelect.value = savedCurrency;
+            }
+            
+            // 先嘗試獲取即時匯率
+            fetchExchangeRate();
+            // 每30分鐘自動更新一次匯率
+            setInterval(fetchExchangeRate, 30 * 60 * 1000);
+            
+            // 載入支出資料（會從 Firebase 或 localStorage 載入）
+            renderExpenses(); 
+            renderChecklist();
+            const savedMemo = localStorage.getItem('travel_memo');
+            if(savedMemo) { document.getElementById('memo-area').value = savedMemo; parseMemoLinks(savedMemo); }
+            document.getElementById('memo-area').addEventListener('input', (e) => { localStorage.setItem('travel_memo', e.target.value); parseMemoLinks(e.target.value); });
+        }
+        function renderChecklist() {
+            const c = document.getElementById('checklist-container'); c.innerHTML = '';
+            checklist.forEach((item, i) => {
+                const starClass = item.highlight ? 'text-muji-primary' : 'text-muji-border';
+                const bgClass = item.highlight ? 'bg-muji-light border-l-2 border-muji-primary' : 'bg-white';
+                c.innerHTML += `
+                    <div class="flex items-center p-4 muji-border mb-2 ${bgClass} muji-shadow group">
+                        <div class="drag-handle mr-2"><i class="fas fa-grip-vertical"></i></div>
+                        <div onclick="toggleCheck(${i})" class="flex-1 flex items-center cursor-pointer">
+                            <i class="fas ${item.checked?'fa-check-square text-muji-primary':'fa-square text-muji-border'} mr-3 text-lg"></i>
+                            <span class="${item.checked?'line-through text-muji-secondary':'font-medium text-muji-text'}">${item.text}</span>
+                        </div>
+                        <button onclick="toggleCheckStar(${i})" class="mr-3 ${starClass}"><i class="fas fa-star"></i></button>
+                        <button onclick="deleteCheck(${i})" class="text-muji-secondary hover:text-muji-accent btn-delete"><i class="fas fa-times text-xs"></i></button>
+                    </div>`;
+            });
+            localStorage.setItem('travel_checklist', JSON.stringify(checklist));
+            initSortables();
+        }
+        function toggleCheck(i) { checklist[i].checked = !checklist[i].checked; renderChecklist(); }
+        function toggleCheckStar(i) { checklist[i].highlight = !checklist[i].highlight; renderChecklist(); }
+        function addCheckItem() { const v = document.getElementById('new-check-item').value; if(v){ checklist.push({text:v, checked:false, highlight:false}); document.getElementById('new-check-item').value=''; renderChecklist(); } }
+        function deleteCheck(i) { checklist.splice(i, 1); renderChecklist(); }
+
+        // 計算機相關變數和函數
+        let calcCurrentValue = '0';
+        let calcPreviousValue = '';
+        let calcOperator = '';
+        let calcWaitingForOperand = false;
+
+        function openCalculator() {
+            const overlay = document.getElementById('calculator-overlay');
+            const expenseInput = document.getElementById('expense-math');
+            // 如果輸入框有值，先顯示在計算機上
+            if (expenseInput.value) {
+                calcCurrentValue = expenseInput.value.replace(/[^0-9.\-+*/()]/g, '') || '0';
+                document.getElementById('calculator-display').innerText = calcCurrentValue;
+            } else {
+                calcCurrentValue = '0';
+                document.getElementById('calculator-display').innerText = '0';
+            }
+            calcPreviousValue = '';
+            calcOperator = '';
+            calcWaitingForOperand = false;
+            overlay.classList.add('show');
+        }
+
+        function closeCalculator() {
+            document.getElementById('calculator-overlay').classList.remove('show');
+        }
+
+        function closeCalculatorOnOverlay(event) {
+            if (event.target.id === 'calculator-overlay') {
+                closeCalculator();
+            }
+        }
+
+        function calcNumber(num) {
+            if (calcWaitingForOperand) {
+                calcCurrentValue = num;
+                calcWaitingForOperand = false;
+            } else {
+                if (calcCurrentValue === '0') {
+                    calcCurrentValue = num;
+                } else {
+                    // 避免多個小數點
+                    if (num === '.' && calcCurrentValue.includes('.')) {
+                        return;
+                    }
+                    calcCurrentValue += num;
+                }
+            }
+            document.getElementById('calculator-display').innerText = calcCurrentValue;
+        }
+
+        function calcOperation(op) {
+            const inputValue = parseFloat(calcCurrentValue);
+
+            if (calcPreviousValue === '') {
+                calcPreviousValue = inputValue;
+            } else if (calcOperator) {
+                const currentValue = calcPreviousValue || 0;
+                const newValue = calculate(currentValue, inputValue, calcOperator);
+
+                calcCurrentValue = String(newValue);
+                calcPreviousValue = newValue;
+                document.getElementById('calculator-display').innerText = calcCurrentValue;
+            }
+
+            calcWaitingForOperand = true;
+            calcOperator = op;
+        }
+
+        function calculate(firstValue, secondValue, operator) {
+            switch (operator) {
+                case '+':
+                    return firstValue + secondValue;
+                case '-':
+                    return firstValue - secondValue;
+                case '*':
+                    return firstValue * secondValue;
+                case '/':
+                    return secondValue !== 0 ? firstValue / secondValue : 0;
+                default:
+                    return secondValue;
+            }
+        }
+
+        function calcEquals() {
+            const inputValue = parseFloat(calcCurrentValue);
+
+            if (calcPreviousValue !== '' && calcOperator) {
+                const newValue = calculate(calcPreviousValue, inputValue, calcOperator);
+                calcCurrentValue = String(newValue);
+                calcPreviousValue = '';
+                calcOperator = '';
+                calcWaitingForOperand = true;
+                document.getElementById('calculator-display').innerText = calcCurrentValue;
+            }
+        }
+
+        function calcClear() {
+            calcCurrentValue = '0';
+            calcPreviousValue = '';
+            calcOperator = '';
+            calcWaitingForOperand = false;
+            document.getElementById('calculator-display').innerText = '0';
+        }
+
+        function calcClearEntry() {
+            calcCurrentValue = '0';
+            document.getElementById('calculator-display').innerText = '0';
+        }
+
+        function applyCalculatorResult() {
+            const expenseInput = document.getElementById('expense-math');
+            const result = parseFloat(calcCurrentValue);
+            if (!isNaN(result)) {
+                expenseInput.value = Math.round(result * 100) / 100; // 保留兩位小數
+            }
+            closeCalculator();
+        }
+        function handlePhotoPreview(input) { if (input.files && input.files[0]) { const reader = new FileReader(); reader.onload = function(e) { const img = new Image(); img.onload = function() { const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); const maxWidth = 300; let w = img.width, h = img.height; if (w > maxWidth) { h *= maxWidth / w; w = maxWidth; } canvas.width = w; canvas.height = h; ctx.drawImage(img, 0, 0, w, h); currentPhotoBase64 = canvas.toDataURL('image/jpeg', 0.6); document.getElementById('photo-name').innerText = input.files[0].name; }; img.src = e.target.result; }; reader.readAsDataURL(input.files[0]); } }
+        function addExpense() { 
+            const desc = document.getElementById('expense-desc').value; 
+            const amount = parseFloat(document.getElementById('expense-math').value); 
+            if(!desc || isNaN(amount)) return alert('請輸入項目與金額'); 
+            const newExpense = { 
+                id: Date.now(), 
+                userId: currentExpenseUser, 
+                userName: currentUserName,
+                desc, 
+                amount, 
+                photo: currentPhotoBase64, 
+                date: new Date().toLocaleDateString(),
+                editedBy: currentUserName,
+                editedAt: Date.now()
+            };
+            expenses.unshift(newExpense); 
+            try { 
+                localStorage.setItem('travel_expenses', JSON.stringify(expenses)); 
+                syncExpensesToFirebase();
+                document.getElementById('expense-desc').value = ''; 
+                document.getElementById('expense-math').value = ''; 
+                document.getElementById('expense-photo').value = ''; 
+                document.getElementById('photo-name').innerText = ''; 
+                currentPhotoBase64 = null; 
+                renderExpenses(); 
+            } catch(e) { 
+                alert('空間已滿'); 
+                expenses.shift(); 
+            } 
+        }
+        function renderExpenses() { 
+            const list = document.getElementById('expense-list'); 
+            const rate = parseFloat(document.getElementById('exchange-rate').value) || 0.22; 
+            const targetCurrency = getSelectedCurrency();
+            const currencySymbol = getCurrencySymbol(targetCurrency);
+            
+            // 過濾當前選擇的用戶支出
+            const filteredExpenses = expenses.filter(e => !currentExpenseUser || e.userId === currentExpenseUser);
+            let totalForeign = 0; 
+            list.innerHTML = ''; 
+            filteredExpenses.forEach(item => { 
+                totalForeign += item.amount; 
+                const twdAmount = Math.round(item.amount / rate);
+                const canEdit = item.userId === currentUserId;
+                const editorInfo = item.editedBy ? `<div class="text-xs text-muji-secondary mt-1">編輯：${item.editedBy}</div>` : '';
+                list.innerHTML += `<div class="bg-white muji-border p-4 flex items-center justify-between muji-shadow mb-2"><div class="flex items-center gap-3 min-w-0"><div class="flex-shrink-0">${item.photo ? `<img src="${item.photo}" class="w-12 h-12 object-cover muji-border" onclick="viewImage('${item.photo}')">` : '<div class="w-12 h-12 bg-muji-light muji-border flex items-center justify-center"><i class="fas fa-shopping-bag text-muji-secondary"></i></div>'}</div><div class="min-w-0 flex-1"><div class="font-medium text-muji-text truncate">${item.desc}</div><div class="text-xs text-muji-secondary">${item.date}</div>${editorInfo}</div></div><div class="text-right flex-shrink-0 ml-2"><div class="font-medium text-muji-accent">${currencySymbol}${item.amount}</div><div class="text-xs text-muji-secondary">≈ NT$${twdAmount}</div></div>${canEdit ? `<button onclick="deleteExpense(${item.id})" class="ml-2 btn-delete flex-shrink-0"><i class="fas fa-times text-xs"></i></button>` : ''}</div>`; 
+            }); 
+            document.getElementById('total-foreign').innerText = totalForeign.toLocaleString(); 
+            document.getElementById('total-twd').innerText = Math.round(totalForeign / rate).toLocaleString(); 
+            renderExpenseTabs();
+        }
+        
+        // 渲染支出分頁
+        function renderExpenseTabs() {
+            const tabsContainer = document.getElementById('expense-tabs');
+            if (!tabsContainer) return;
+            
+            // 收集所有有支出的用戶
+            const userExpenses = {};
+            expenses.forEach(e => {
+                if (!userExpenses[e.userId]) {
+                    userExpenses[e.userId] = {
+                        name: e.userName || companions[e.userId]?.name || '未命名',
+                        userId: e.userId,
+                        count: 0
+                    };
+                }
+                userExpenses[e.userId].count++;
+            });
+            
+            // 添加「全部」選項
+            let tabsHTML = `<button onclick="switchExpenseUser(null)" class="px-3 py-2 text-xs font-medium ${!currentExpenseUser ? 'bg-white text-muji-accent' : 'text-muji-secondary'} muji-border rounded whitespace-nowrap">全部</button>`;
+            
+            // 添加各用戶分頁
+            Object.values(userExpenses).forEach(user => {
+                const isActive = currentExpenseUser === user.userId;
+                tabsHTML += `<button onclick="switchExpenseUser('${user.userId}')" class="px-3 py-2 text-xs font-medium ${isActive ? 'bg-white text-muji-accent' : 'text-muji-secondary'} muji-border rounded whitespace-nowrap">${user.name} (${user.count})</button>`;
+            });
+            
+            tabsContainer.innerHTML = tabsHTML;
+        }
+        
+        function switchExpenseUser(userId) {
+            currentExpenseUser = userId;
+            renderExpenses();
+        }
+        function deleteExpense(id) { 
+            const expense = expenses.find(e => e.id === id);
+            if (!expense) return;
+            if (expense.userId !== currentUserId) {
+                alert('您只能刪除自己的支出紀錄');
+                return;
+            }
+            if(confirm('刪除？')) { 
+                expenses = expenses.filter(e=>e.id!==id); 
+                localStorage.setItem('travel_expenses', JSON.stringify(expenses));
+                syncExpensesToFirebase();
+                renderExpenses(); 
+            } 
+        }
+        
+        // --- 同行者管理功能 ---
+        function openCompanionsManager() {
+            console.log('openCompanionsManager 被調用');
+            const overlay = document.getElementById('companions-overlay');
+            if (!overlay) {
+                console.error('找不到 companions-overlay 元素');
+                return;
+            }
+            const menu = overlay.querySelector('.sidebar-menu');
+            overlay.classList.add('active');
+            if (menu) {
+                menu.classList.add('active');
+            } else {
+                console.error('找不到 sidebar-menu 元素');
+            }
+            const nameInput = document.getElementById('current-user-name');
+            if (nameInput) {
+                nameInput.value = currentUserName || '';
+            }
+            updateCurrentTripCode();
+            renderCompanionsList();
+        }
+        
+        // 確保函數在全局作用域
+        window.openCompanionsManager = openCompanionsManager;
+        window.closeCompanionsManager = closeCompanionsManager;
+        window.setCurrentUser = setCurrentUser;
+        window.joinTripByCode = joinTripByCode;
+        window.copyTripCode = copyTripCode;
+        
+        function closeCompanionsManager(event) {
+            if (!event || event.target.id === 'companions-overlay') {
+                const overlay = document.getElementById('companions-overlay');
+                const menu = overlay.querySelector('.sidebar-menu');
+                overlay.classList.remove('active');
+                if (menu) menu.classList.remove('active');
+            }
+        }
+        
+        function setCurrentUser() {
+            const name = document.getElementById('current-user-name').value.trim();
+            if (!name) {
+                alert('請輸入名稱');
+                return;
+            }
+            currentUserName = name;
+            localStorage.setItem('travel_user_name', name);
+            syncCurrentUserToFirebase();
+            alert('名稱設定成功');
+        }
+        
+        function updateCurrentTripCode() {
+            const codeEl = document.getElementById('current-trip-code');
+            if (currentTripId) {
+                codeEl.innerText = currentTripId;
+            } else {
+                codeEl.innerText = '未選擇行程';
+            }
+        }
+        
+        function copyTripCode() {
+            if (!currentTripId) {
+                alert('請先選擇或建立行程');
+                return;
+            }
+            navigator.clipboard.writeText(currentTripId).then(() => {
+                alert('行程代碼已複製');
+            });
+        }
+        
+        function joinTripByCode() {
+            const code = document.getElementById('trip-code-input').value.trim();
+            if (!code) {
+                alert('請輸入行程代碼');
+                return;
+            }
+            // 檢查行程是否存在
+            const trip = trips.find(t => t.id === code);
+            if (trip) {
+                currentTripId = code;
+                selectTrip(code);
+                updateCurrentTripCode();
+                syncCurrentUserToFirebase();
+                alert('已加入行程');
+                document.getElementById('trip-code-input').value = '';
+            } else {
+                alert('找不到該行程代碼');
+            }
+        }
+        
+        function renderCompanionsList() {
+            const listEl = document.getElementById('companions-list');
+            if (!listEl) return;
+            
+            listEl.innerHTML = '';
+            Object.keys(companions).forEach(userId => {
+                const companion = companions[userId];
+                const isCurrentUser = userId === currentUserId;
+                listEl.innerHTML += `
+                    <div class="bg-white p-3 rounded border flex items-center justify-between">
+                        <div>
+                            <div class="font-medium text-muji-text">${companion.name} ${isCurrentUser ? '(我)' : ''}</div>
+                            <div class="text-xs text-muji-secondary">${new Date(companion.joinedAt).toLocaleString()}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            if (Object.keys(companions).length === 0) {
+                listEl.innerHTML = '<div class="text-sm text-muji-secondary text-center py-4">尚無同行者</div>';
+            }
+        }
+        
+        // --- Firebase 同步功能 ---
+        async function syncCurrentUserToFirebase() {
+            if (!firebaseDB || !currentTripId) return;
+            try {
+                const { ref, set } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+                const userRef = ref(firebaseDB, `trips/${currentTripId}/companions/${currentUserId}`);
+                await set(userRef, {
+                    name: currentUserName,
+                    joinedAt: Date.now(),
+                    lastSeen: Date.now()
+                });
+            } catch (error) {
+                console.error('同步用戶資料失敗:', error);
+            }
+        }
+        
+        async function syncExpensesToFirebase() {
+            if (!firebaseDB || !currentTripId) return;
+            try {
+                const { ref, set } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+                const expensesRef = ref(firebaseDB, `trips/${currentTripId}/expenses`);
+                await set(expensesRef, expenses);
+            } catch (error) {
+                console.error('同步支出資料失敗:', error);
+            }
+        }
+        
+        async function syncTripDataToFirebase() {
+            if (!firebaseDB || !currentTripId || !appData) return;
+            try {
+                const { ref, update } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+                const tripRef = ref(firebaseDB, `trips/${currentTripId}`);
+                await update(tripRef, {
+                    data: appData,
+                    lastEditedBy: currentUserName,
+                    lastEditedAt: Date.now()
+                });
+            } catch (error) {
+                console.error('同步行程資料失敗:', error);
+            }
+        }
+        
+        // 監聽 Firebase 變化
+        async function setupFirebaseListeners() {
+            if (!firebaseDB || !currentTripId) return;
+            
+            try {
+                const dbModule = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+                
+                // 監聽同行者
+                const companionsRef = dbModule.ref(firebaseDB, `trips/${currentTripId}/companions`);
+                dbModule.onValue(companionsRef, (snapshot) => {
+                    companions = snapshot.val() || {};
+                    renderCompanionsList();
+                });
+                
+                // 監聽支出
+                const expensesRef = dbModule.ref(firebaseDB, `trips/${currentTripId}/expenses`);
+                dbModule.onValue(expensesRef, (snapshot) => {
+                    const firebaseExpenses = snapshot.val();
+                    if (firebaseExpenses) {
+                        // Firebase 返回的可能是物件或陣列
+                        const expenseArray = Array.isArray(firebaseExpenses) ? firebaseExpenses : Object.values(firebaseExpenses);
+                        if (expenseArray.length > 0 || expenses.length === 0) {
+                            expenses = expenseArray;
+                            localStorage.setItem('travel_expenses', JSON.stringify(expenses));
+                            renderExpenses();
+                        }
+                    }
+                });
+                
+                // 監聽行程資料
+                const tripRef = dbModule.ref(firebaseDB, `trips/${currentTripId}`);
+                dbModule.onValue(tripRef, (snapshot) => {
+                    const tripData = snapshot.val();
+                    if (tripData && tripData.data && tripData.lastEditedBy !== currentUserName) {
+                        // 顯示編輯者資訊
+                        if (tripData.lastEditedBy) {
+                            console.log(`行程已由 ${tripData.lastEditedBy} 更新`);
+                        }
+                        // 可以選擇性地同步資料
+                        // appData = tripData.data;
+                        // renderAll();
+                    }
+                });
+                
+            } catch (error) {
+                console.error('設定 Firebase 監聽失敗:', error);
+            }
+        }
+        
+        // 初始化時也同步用戶資訊
+        setTimeout(() => {
+            if (currentTripId) {
+                setupFirebaseListeners();
+                syncCurrentUserToFirebase();
+            }
+        }, 2000);
+        function updateWalletUI() { 
+            localStorage.setItem('travel_rate', document.getElementById('exchange-rate').value); 
+            renderExpenses(); 
+        }
+        function viewImage(src) { const w = window.open(""); w.document.write('<img src="'+src+'" style="width:100%">'); }
+        function parseMemoLinks(t) { const m = t.match(/(https?:\/\/[^\s]+)/g); const c = document.getElementById('memo-links-preview'); c.innerHTML = ''; if(m) m.forEach(u => c.innerHTML += `<a href="${u}" target="_blank" class="text-xs bg-white muji-border text-muji-primary px-3 py-1 truncate max-w-full block hover:bg-muji-light transition-colors"><i class="fas fa-link mr-1"></i> ${u.substring(0,30)}...</a>`); }
+        function exportData() { const d = { appData, expenses, checklist, memo: localStorage.getItem('travel_memo'), rate: localStorage.getItem('travel_rate') }; document.getElementById('data-area').value = JSON.stringify(d); document.getElementById('copy-btn').classList.remove('hidden'); alert('代碼已產生'); }
+        function importData() { const v = document.getElementById('data-area').value.trim(); if(!v) return alert('請貼上代碼'); if(confirm('確定覆蓋？')) { try { const d = JSON.parse(v); if(d.appData) localStorage.setItem('travel_data', JSON.stringify(d.appData)); if(d.expenses) localStorage.setItem('travel_expenses', JSON.stringify(d.expenses)); if(d.checklist) localStorage.setItem('travel_checklist', JSON.stringify(d.checklist)); if(d.memo) localStorage.setItem('travel_memo', d.memo); if(d.rate) localStorage.setItem('travel_rate', d.rate); location.reload(); } catch(e) { alert('代碼錯誤'); } } }
+        function copyToClipboard() { const a = document.getElementById('data-area'); a.select(); navigator.clipboard.writeText(a.value).then(()=>alert('已複製')); }
+        function switchListTab(tab) {
+            const checklistDiv = document.getElementById('content-checklist');
+            const memoDiv = document.getElementById('content-memo');
+            const checklistBtn = document.getElementById('tab-btn-checklist');
+            const memoBtn = document.getElementById('tab-btn-memo');
+            
+            if (tab === 'checklist') {
+                checklistDiv.classList.remove('hidden');
+                memoDiv.classList.add('hidden');
+                checklistBtn.classList.add('bg-white', 'muji-shadow', 'text-muji-accent');
+                checklistBtn.classList.remove('text-muji-secondary');
+                memoBtn.classList.remove('bg-white', 'muji-shadow', 'text-muji-accent');
+                memoBtn.classList.add('text-muji-secondary');
+            } else {
+                checklistDiv.classList.add('hidden');
+                memoDiv.classList.remove('hidden');
+                memoBtn.classList.add('bg-white', 'muji-shadow', 'text-muji-accent');
+                memoBtn.classList.remove('text-muji-secondary');
+                checklistBtn.classList.remove('bg-white', 'muji-shadow', 'text-muji-accent');
+                checklistBtn.classList.add('text-muji-secondary');
+            }
+        }
+        function switchTab(id) { document.querySelectorAll('.view-section').forEach(e=>e.classList.add('hidden')); document.querySelectorAll('.view-section').forEach(e=>e.classList.remove('block')); document.getElementById('view-'+id).classList.remove('hidden'); document.getElementById('view-'+id).classList.add('block'); document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(e=>e.classList.add('text-muji-secondary')); const m = {'plan':0,'guide':1,'wallet':2,'lists':3,'info':4}; const btn = document.querySelectorAll('.nav-item')[m[id]]; btn.classList.add('active'); btn.classList.remove('text-muji-secondary'); document.getElementById('app-content').scrollTop = 0; }
+
+        window.onload = function() { 
+            renderAll(); 
+            renderTripList();
+            initWalletAndLists();
+            // 初始化時顯示新增按鈕（非編輯模式且有行程時）
+            const addDayHeaderBtn = document.getElementById('add-day-header-btn');
+            if (addDayHeaderBtn && !isEditMode && appData && trips.length > 0) {
+                addDayHeaderBtn.classList.remove('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
