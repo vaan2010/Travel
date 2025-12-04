@@ -693,8 +693,69 @@
                 window.firebaseUpdate = dbModule.update;
                 
                 console.log('Firebase 初始化成功');
+                
+                // Firebase 初始化完成後，如果有行程ID，載入共享資料
+                if (currentTripId) {
+                    console.log('正在從 Firebase 載入行程資料:', currentTripId);
+                    await loadTripFromFirebase(currentTripId);
+                    setupFirebaseListeners();
+                    syncCurrentUserToFirebase();
+                    
+                    // 同時將本地資料同步到 Firebase（確保資料是最新的）
+                    if (appData) {
+                        syncTripDataToFirebase();
+                    }
+                    if (expenses && expenses.length > 0) {
+                        syncExpensesToFirebase();
+                    }
+                } else {
+                    console.log('目前沒有選擇行程，無法載入共享資料');
+                }
             } catch (error) {
                 console.error('Firebase 初始化失敗:', error);
+            }
+        }
+        
+        // 從 Firebase 載入行程資料
+        async function loadTripFromFirebase(tripId) {
+            if (!firebaseDB || !tripId) return;
+            try {
+                const dbModule = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+                const tripRef = dbModule.ref(firebaseDB, `trips/${tripId}`);
+                
+                const snapshot = await new Promise((resolve) => {
+                    dbModule.onValue(tripRef, (snap) => {
+                        resolve(snap);
+                    }, { onlyOnce: true });
+                });
+                
+                const tripData = snapshot.val();
+                if (tripData && tripData.data) {
+                    // 從 Firebase 載入行程資料
+                    appData = tripData.data;
+                    const index = trips.findIndex(t => t.id === tripId);
+                    if (index >= 0) {
+                        trips[index] = appData;
+                    } else {
+                        trips.push(appData);
+                    }
+                    saveTrips();
+                    renderAll();
+                    
+                    // 載入支出資料
+                    if (tripData.expenses) {
+                        const expenseArray = Array.isArray(tripData.expenses) ? tripData.expenses : Object.values(tripData.expenses);
+                        if (expenseArray.length > 0) {
+                            expenses = expenseArray;
+                            localStorage.setItem('travel_expenses', JSON.stringify(expenses));
+                            renderExpenses();
+                        }
+                    }
+                    
+                    console.log('已從 Firebase 載入行程資料');
+                }
+            } catch (error) {
+                console.error('從 Firebase 載入行程失敗:', error);
             }
         }
         
@@ -881,9 +942,19 @@
         }
 
         // 選擇行程
-        function selectTrip(tripId) {
+        async function selectTrip(tripId) {
             currentTripId = tripId;
-            const selectedTrip = trips.find(t => t.id === tripId);
+            localStorage.setItem('travel_current_trip_id', tripId);
+            
+            // 先嘗試從本地載入
+            let selectedTrip = trips.find(t => t.id === tripId);
+            
+            // 如果本地沒有，嘗試從 Firebase 載入
+            if (!selectedTrip && firebaseDB) {
+                await loadTripFromFirebase(tripId);
+                selectedTrip = trips.find(t => t.id === tripId);
+            }
+            
             if (selectedTrip) {
                 appData = { ...selectedTrip };
                 // 確保所有必要欄位存在
@@ -900,11 +971,14 @@
                 toggleSidebar();
                 // 重新載入清單和記帳資料
                 initWalletAndLists();
-                // 設定 Firebase 監聽和同步
-                setTimeout(() => {
+                
+                // 設定 Firebase 監聽和同步（如果 Firebase 已初始化）
+                if (firebaseDB) {
                     setupFirebaseListeners();
                     syncCurrentUserToFirebase();
-                }, 1500); // 等待 Firebase 初始化完成
+                }
+            } else {
+                alert('找不到該行程');
             }
         }
 
@@ -2135,23 +2209,59 @@
             });
         }
         
-        function joinTripByCode() {
+        async function joinTripByCode() {
             const code = document.getElementById('trip-code-input').value.trim();
             if (!code) {
                 alert('請輸入行程代碼');
                 return;
             }
-            // 檢查行程是否存在
-            const trip = trips.find(t => t.id === code);
+            
+            // 先檢查本地是否有這個行程
+            let trip = trips.find(t => t.id === code);
+            
+            // 如果本地沒有，嘗試從 Firebase 載入
+            if (!trip && firebaseDB) {
+                await loadTripFromFirebase(code);
+                trip = trips.find(t => t.id === code);
+            }
+            
             if (trip) {
                 currentTripId = code;
+                localStorage.setItem('travel_current_trip_id', code);
                 selectTrip(code);
                 updateCurrentTripCode();
-                syncCurrentUserToFirebase();
+                
+                // 設置 Firebase 監聽器（如果還沒設置）
+                if (firebaseDB) {
+                    setupFirebaseListeners();
+                    syncCurrentUserToFirebase();
+                }
+                
                 alert('已加入行程');
                 document.getElementById('trip-code-input').value = '';
             } else {
-                alert('找不到該行程代碼');
+                // 如果還是找不到，可能是 Firebase 還沒初始化完成
+                if (!firebaseDB) {
+                    alert('正在連接伺服器，請稍候再試');
+                    // 等待 Firebase 初始化後重試
+                    setTimeout(async () => {
+                        if (firebaseDB) {
+                            await loadTripFromFirebase(code);
+                            trip = trips.find(t => t.id === code);
+                            if (trip) {
+                                currentTripId = code;
+                                localStorage.setItem('travel_current_trip_id', code);
+                                selectTrip(code);
+                                setupFirebaseListeners();
+                                syncCurrentUserToFirebase();
+                                alert('已加入行程');
+                                document.getElementById('trip-code-input').value = '';
+                            }
+                        }
+                    }, 2000);
+                } else {
+                    alert('找不到該行程代碼，請確認代碼是否正確');
+                }
             }
         }
         
@@ -2199,7 +2309,12 @@
             try {
                 const { ref, set } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
                 const expensesRef = ref(firebaseDB, `trips/${currentTripId}/expenses`);
-                await set(expensesRef, expenses);
+                
+                // 確保 expenses 是陣列
+                const expensesArray = Array.isArray(expenses) ? expenses : [];
+                await set(expensesRef, expensesArray);
+                
+                console.log('支出資料已同步到 Firebase:', expensesArray.length, '筆');
             } catch (error) {
                 console.error('同步支出資料失敗:', error);
             }
@@ -2208,13 +2323,17 @@
         async function syncTripDataToFirebase() {
             if (!firebaseDB || !currentTripId || !appData) return;
             try {
-                const { ref, update } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+                const { ref, set } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
                 const tripRef = ref(firebaseDB, `trips/${currentTripId}`);
-                await update(tripRef, {
+                
+                // 使用 set 而不是 update，確保完整更新
+                await set(tripRef, {
                     data: appData,
                     lastEditedBy: currentUserName,
                     lastEditedAt: Date.now()
                 });
+                
+                console.log('行程資料已同步到 Firebase');
             } catch (error) {
                 console.error('同步行程資料失敗:', error);
             }
@@ -2238,14 +2357,27 @@
                 const expensesRef = dbModule.ref(firebaseDB, `trips/${currentTripId}/expenses`);
                 dbModule.onValue(expensesRef, (snapshot) => {
                     const firebaseExpenses = snapshot.val();
-                    if (firebaseExpenses) {
+                    if (firebaseExpenses !== null) {
                         // Firebase 返回的可能是物件或陣列
-                        const expenseArray = Array.isArray(firebaseExpenses) ? firebaseExpenses : Object.values(firebaseExpenses);
-                        if (expenseArray.length > 0 || expenses.length === 0) {
+                        let expenseArray = [];
+                        if (Array.isArray(firebaseExpenses)) {
+                            expenseArray = firebaseExpenses;
+                        } else if (typeof firebaseExpenses === 'object') {
+                            expenseArray = Object.values(firebaseExpenses);
+                        }
+                        
+                        // 確保是有效的陣列
+                        if (Array.isArray(expenseArray)) {
                             expenses = expenseArray;
                             localStorage.setItem('travel_expenses', JSON.stringify(expenses));
                             renderExpenses();
+                            console.log('支出資料已從 Firebase 同步:', expenseArray.length, '筆');
                         }
+                    } else {
+                        // Firebase 沒有資料時清空
+                        expenses = [];
+                        localStorage.setItem('travel_expenses', JSON.stringify([]));
+                        renderExpenses();
                     }
                 });
                 
@@ -2253,14 +2385,40 @@
                 const tripRef = dbModule.ref(firebaseDB, `trips/${currentTripId}`);
                 dbModule.onValue(tripRef, (snapshot) => {
                     const tripData = snapshot.val();
-                    if (tripData && tripData.data && tripData.lastEditedBy !== currentUserName) {
-                        // 顯示編輯者資訊
-                        if (tripData.lastEditedBy) {
-                            console.log(`行程已由 ${tripData.lastEditedBy} 更新`);
+                    if (tripData) {
+                        // 如果資料是由其他人編輯的，同步更新
+                        if (tripData.data && tripData.lastEditedBy !== currentUserName) {
+                            // 顯示編輯者資訊
+                            if (tripData.lastEditedBy) {
+                                console.log(`行程已由 ${tripData.lastEditedBy} 更新`);
+                                // 可以選擇顯示通知
+                                // alert(`行程已由 ${tripData.lastEditedBy} 更新`);
+                            }
+                            
+                            // 同步行程資料（可以選擇是否自動同步，或提示用戶）
+                            appData = tripData.data;
+                            const index = trips.findIndex(t => t.id === currentTripId);
+                            if (index >= 0) {
+                                trips[index] = { ...appData, id: currentTripId };
+                            }
+                            saveTrips();
+                            renderAll();
                         }
-                        // 可以選擇性地同步資料
-                        // appData = tripData.data;
-                        // renderAll();
+                        
+                        // 同步支出資料
+                        if (tripData.expenses) {
+                            let expenseArray = [];
+                            if (Array.isArray(tripData.expenses)) {
+                                expenseArray = tripData.expenses;
+                            } else if (typeof tripData.expenses === 'object') {
+                                expenseArray = Object.values(tripData.expenses);
+                            }
+                            if (Array.isArray(expenseArray)) {
+                                expenses = expenseArray;
+                                localStorage.setItem('travel_expenses', JSON.stringify(expenses));
+                                renderExpenses();
+                            }
+                        }
                     }
                 });
                 
@@ -2269,13 +2427,7 @@
             }
         }
         
-        // 初始化時也同步用戶資訊
-        setTimeout(() => {
-            if (currentTripId) {
-                setupFirebaseListeners();
-                syncCurrentUserToFirebase();
-            }
-        }, 2000);
+        // 注意：Firebase 監聽器現在在 initFirebase() 完成後自動設置
         function updateWalletUI() { 
             localStorage.setItem('travel_rate', document.getElementById('exchange-rate').value); 
             renderExpenses(); 
