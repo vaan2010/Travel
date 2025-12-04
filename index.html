@@ -743,11 +743,38 @@
                     renderAll();
                     
                     // 載入支出資料
+                    const localExpenses = JSON.parse(localStorage.getItem('travel_expenses')) || [];
+                    
                     if (tripData.expenses) {
                         const expenseArray = Array.isArray(tripData.expenses) ? tripData.expenses : Object.values(tripData.expenses);
                         if (expenseArray.length > 0) {
-                            expenses = expenseArray;
+                            // 合併本地和 Firebase 的資料
+                            if (localExpenses.length > 0) {
+                                // 合併邏輯：以 Firebase 為主，但保留本地有而 Firebase 沒有的資料
+                                const firebaseIds = new Set(expenseArray.map(e => e.id));
+                                const localOnly = localExpenses.filter(e => !firebaseIds.has(e.id));
+                                expenses = [...expenseArray, ...localOnly];
+                                // 同步合併後的資料到 Firebase
+                                if (localOnly.length > 0) {
+                                    setTimeout(() => syncExpensesToFirebase(), 500);
+                                }
+                            } else {
+                                expenses = expenseArray;
+                            }
                             localStorage.setItem('travel_expenses', JSON.stringify(expenses));
+                            renderExpenses();
+                        } else if (localExpenses.length > 0) {
+                            // Firebase 沒有支出資料，但本地有，則同步本地資料到 Firebase
+                            expenses = localExpenses;
+                            setTimeout(() => syncExpensesToFirebase(), 500);
+                            renderExpenses();
+                        }
+                    } else {
+                        // Firebase 沒有支出資料，保留本地資料
+                        if (localExpenses.length > 0) {
+                            expenses = localExpenses;
+                            // 同步本地資料到 Firebase
+                            setTimeout(() => syncExpensesToFirebase(), 500);
                             renderExpenses();
                         }
                     }
@@ -1883,6 +1910,13 @@
                 currencySelect.value = savedCurrency;
             }
             
+            // 確保支出資料已從 localStorage 載入
+            const savedExpenses = JSON.parse(localStorage.getItem('travel_expenses')) || [];
+            if (savedExpenses.length > 0 && expenses.length === 0) {
+                expenses = savedExpenses;
+                console.log('從 localStorage 載入支出資料:', expenses.length, '筆');
+            }
+            
             // 先嘗試獲取即時匯率
             fetchExchangeRate();
             // 每30分鐘自動更新一次匯率
@@ -2419,9 +2453,10 @@
                 
                 // 監聽支出
                 const expensesRef = dbModule.ref(firebaseDB, `trips/${currentTripId}/expenses`);
+                let firstExpenseLoad = true; // 標記是否為首次載入
                 dbModule.onValue(expensesRef, (snapshot) => {
                     const firebaseExpenses = snapshot.val();
-                    if (firebaseExpenses !== null) {
+                    if (firebaseExpenses !== null && firebaseExpenses !== undefined) {
                         // Firebase 返回的可能是物件或陣列
                         let expenseArray = [];
                         if (Array.isArray(firebaseExpenses)) {
@@ -2432,16 +2467,29 @@
                         
                         // 確保是有效的陣列
                         if (Array.isArray(expenseArray)) {
-                            expenses = expenseArray;
+                            // 首次載入時，合併本地和 Firebase 資料（避免覆蓋本地新資料）
+                            if (firstExpenseLoad && expenses.length > 0) {
+                                // 合併邏輯：以 Firebase 為主，但保留本地有而 Firebase 沒有的資料
+                                const firebaseIds = new Set(expenseArray.map(e => e.id));
+                                const localOnly = expenses.filter(e => !firebaseIds.has(e.id));
+                                expenses = [...expenseArray, ...localOnly];
+                                // 同步合併後的資料到 Firebase
+                                syncExpensesToFirebase();
+                            } else {
+                                expenses = expenseArray;
+                            }
                             localStorage.setItem('travel_expenses', JSON.stringify(expenses));
                             renderExpenses();
                             console.log('支出資料已從 Firebase 同步:', expenseArray.length, '筆');
+                            firstExpenseLoad = false;
                         }
                     } else {
-                        // Firebase 沒有資料時清空
-                        expenses = [];
-                        localStorage.setItem('travel_expenses', JSON.stringify([]));
-                        renderExpenses();
+                        // Firebase 沒有資料時，保留本地資料（不清空）
+                        // 只同步本地資料到 Firebase
+                        if (expenses.length > 0 && !firstExpenseLoad) {
+                            syncExpensesToFirebase();
+                        }
+                        firstExpenseLoad = false;
                     }
                 });
                 
@@ -2469,7 +2517,7 @@
                             renderAll();
                         }
                         
-                        // 同步支出資料
+                        // 同步支出資料（但不覆蓋本地可能更新的資料）
                         if (tripData.expenses) {
                             let expenseArray = [];
                             if (Array.isArray(tripData.expenses)) {
@@ -2477,8 +2525,11 @@
                             } else if (typeof tripData.expenses === 'object') {
                                 expenseArray = Object.values(tripData.expenses);
                             }
-                            if (Array.isArray(expenseArray)) {
-                                expenses = expenseArray;
+                            if (Array.isArray(expenseArray) && expenseArray.length > 0) {
+                                // 合併邏輯：以 Firebase 為主，但保留本地有而 Firebase 沒有的資料
+                                const firebaseIds = new Set(expenseArray.map(e => e.id));
+                                const localOnly = expenses.filter(e => !firebaseIds.has(e.id));
+                                expenses = [...expenseArray, ...localOnly];
                                 localStorage.setItem('travel_expenses', JSON.stringify(expenses));
                                 renderExpenses();
                             }
