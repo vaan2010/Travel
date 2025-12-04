@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
@@ -467,8 +467,8 @@
                 </div>
             </div>
             <!-- 支出分頁 (不同的人) -->
-            <div class="flex bg-muji-light p-1 mb-4 overflow-x-auto">
-                <div id="expense-tabs" class="flex gap-1 min-w-full">
+            <div class="bg-muji-light p-1 mb-4 rounded overflow-x-auto">
+                <div id="expense-tabs" class="flex gap-1 min-w-max">
                     <!-- 動態生成分頁 -->
                 </div>
             </div>
@@ -2042,10 +2042,17 @@
             const desc = document.getElementById('expense-desc').value; 
             const amount = parseFloat(document.getElementById('expense-math').value); 
             if(!desc || isNaN(amount)) return alert('請輸入項目與金額'); 
+            
+            // 如果沒有選擇用戶分頁，使用當前用戶ID
+            const expenseUserId = currentExpenseUser || currentUserId;
+            const expenseUserName = currentExpenseUser ? 
+                (companions[currentExpenseUser]?.name || currentUserName) : 
+                currentUserName;
+            
             const newExpense = { 
                 id: Date.now(), 
-                userId: currentExpenseUser, 
-                userName: currentUserName,
+                userId: expenseUserId, 
+                userName: expenseUserName,
                 desc, 
                 amount, 
                 photo: currentPhotoBase64, 
@@ -2062,6 +2069,12 @@
                 document.getElementById('expense-photo').value = ''; 
                 document.getElementById('photo-name').innerText = ''; 
                 currentPhotoBase64 = null; 
+                
+                // 新增支出後，切換到該用戶的分頁
+                if (!currentExpenseUser) {
+                    currentExpenseUser = expenseUserId;
+                }
+                
                 renderExpenses(); 
             } catch(e) { 
                 alert('空間已滿'); 
@@ -2074,19 +2087,35 @@
             const targetCurrency = getSelectedCurrency();
             const currencySymbol = getCurrencySymbol(targetCurrency);
             
-            // 過濾當前選擇的用戶支出
-            const filteredExpenses = expenses.filter(e => !currentExpenseUser || e.userId === currentExpenseUser);
+            // 過濾當前選擇的用戶支出（如果選擇了特定用戶分頁）
+            const filteredExpenses = currentExpenseUser 
+                ? expenses.filter(e => e.userId === currentExpenseUser)
+                : expenses; // 如果選擇「全部」，顯示所有支出
+            
             let totalForeign = 0; 
             list.innerHTML = ''; 
-            filteredExpenses.forEach(item => { 
-                totalForeign += item.amount; 
-                const twdAmount = Math.round(item.amount / rate);
-                const canEdit = item.userId === currentUserId;
-                const editorInfo = item.editedBy ? `<div class="text-xs text-muji-secondary mt-1">編輯：${item.editedBy}</div>` : '';
-                list.innerHTML += `<div class="bg-white muji-border p-4 flex items-center justify-between muji-shadow mb-2"><div class="flex items-center gap-3 min-w-0"><div class="flex-shrink-0">${item.photo ? `<img src="${item.photo}" class="w-12 h-12 object-cover muji-border" onclick="viewImage('${item.photo}')">` : '<div class="w-12 h-12 bg-muji-light muji-border flex items-center justify-center"><i class="fas fa-shopping-bag text-muji-secondary"></i></div>'}</div><div class="min-w-0 flex-1"><div class="font-medium text-muji-text truncate">${item.desc}</div><div class="text-xs text-muji-secondary">${item.date}</div>${editorInfo}</div></div><div class="text-right flex-shrink-0 ml-2"><div class="font-medium text-muji-accent">${currencySymbol}${item.amount}</div><div class="text-xs text-muji-secondary">≈ NT$${twdAmount}</div></div>${canEdit ? `<button onclick="deleteExpense(${item.id})" class="ml-2 btn-delete flex-shrink-0"><i class="fas fa-times text-xs"></i></button>` : ''}</div>`; 
-            }); 
+            
+            // 如果沒有支出記錄，顯示提示
+            if (filteredExpenses.length === 0) {
+                list.innerHTML = `<div class="text-center py-8 text-muji-secondary">
+                    <i class="fas fa-receipt text-3xl mb-2 opacity-40"></i>
+                    <div class="text-sm">${currentExpenseUser ? '此分頁' : '目前'}尚無支出紀錄</div>
+                </div>`;
+            } else {
+                // 有支出記錄時，顯示列表
+                filteredExpenses.forEach(item => { 
+                    totalForeign += item.amount; 
+                    const twdAmount = Math.round(item.amount / rate);
+                    const canEdit = item.userId === currentUserId;
+                    const editorInfo = item.editedBy ? `<div class="text-xs text-muji-secondary mt-1">編輯：${item.editedBy}</div>` : '';
+                    list.innerHTML += `<div class="bg-white muji-border p-4 flex items-center justify-between muji-shadow mb-2"><div class="flex items-center gap-3 min-w-0"><div class="flex-shrink-0">${item.photo ? `<img src="${item.photo}" class="w-12 h-12 object-cover muji-border" onclick="viewImage('${item.photo}')">` : '<div class="w-12 h-12 bg-muji-light muji-border flex items-center justify-center"><i class="fas fa-shopping-bag text-muji-secondary"></i></div>'}</div><div class="min-w-0 flex-1"><div class="font-medium text-muji-text truncate">${item.desc}</div><div class="text-xs text-muji-secondary">${item.date}</div>${editorInfo}</div></div><div class="text-right flex-shrink-0 ml-2"><div class="font-medium text-muji-accent">${currencySymbol}${item.amount}</div><div class="text-xs text-muji-secondary">≈ NT$${twdAmount}</div></div>${canEdit ? `<button onclick="deleteExpense(${item.id})" class="ml-2 btn-delete flex-shrink-0"><i class="fas fa-times text-xs"></i></button>` : ''}</div>`; 
+                }); 
+            }
+            
+            // 顯示總額（根據當前分頁）
             document.getElementById('total-foreign').innerText = totalForeign.toLocaleString(); 
             document.getElementById('total-twd').innerText = Math.round(totalForeign / rate).toLocaleString(); 
+            
             renderExpenseTabs();
         }
         
@@ -2098,9 +2127,12 @@
             // 收集所有有支出的用戶
             const userExpenses = {};
             expenses.forEach(e => {
+                if (!e.userId) return; // 跳過沒有 userId 的舊資料
                 if (!userExpenses[e.userId]) {
+                    // 優先使用支出記錄中的 userName，其次從 companions 獲取，最後使用默認值
+                    const userName = e.userName || companions[e.userId]?.name || '未命名';
                     userExpenses[e.userId] = {
-                        name: e.userName || companions[e.userId]?.name || '未命名',
+                        name: userName,
                         userId: e.userId,
                         count: 0
                     };
@@ -2108,13 +2140,33 @@
                 userExpenses[e.userId].count++;
             });
             
+            // 如果沒有支出，只顯示「全部」分頁
+            if (Object.keys(userExpenses).length === 0) {
+                tabsContainer.innerHTML = `<button onclick="switchExpenseUser(null)" class="px-3 py-2 text-xs font-medium bg-white text-muji-accent muji-border rounded whitespace-nowrap">全部</button>`;
+                return;
+            }
+            
             // 添加「全部」選項
-            let tabsHTML = `<button onclick="switchExpenseUser(null)" class="px-3 py-2 text-xs font-medium ${!currentExpenseUser ? 'bg-white text-muji-accent' : 'text-muji-secondary'} muji-border rounded whitespace-nowrap">全部</button>`;
+            let tabsHTML = `<button onclick="switchExpenseUser(null)" class="px-3 py-2 text-xs font-medium ${!currentExpenseUser ? 'bg-white text-muji-accent' : 'text-muji-secondary hover:bg-white/50'} muji-border rounded whitespace-nowrap transition-colors">全部</button>`;
+            
+            // 按用戶名稱排序（當前用戶排在前面）
+            const sortedUsers = Object.values(userExpenses).sort((a, b) => {
+                // 當前用戶優先
+                if (a.userId === currentUserId) return -1;
+                if (b.userId === currentUserId) return 1;
+                // 當前選擇的分頁優先
+                if (a.userId === currentExpenseUser) return -1;
+                if (b.userId === currentExpenseUser) return 1;
+                // 其他按名稱排序
+                return a.name.localeCompare(b.name, 'zh-TW');
+            });
             
             // 添加各用戶分頁
-            Object.values(userExpenses).forEach(user => {
+            sortedUsers.forEach(user => {
                 const isActive = currentExpenseUser === user.userId;
-                tabsHTML += `<button onclick="switchExpenseUser('${user.userId}')" class="px-3 py-2 text-xs font-medium ${isActive ? 'bg-white text-muji-accent' : 'text-muji-secondary'} muji-border rounded whitespace-nowrap">${user.name} (${user.count})</button>`;
+                // 標記當前用戶
+                const userLabel = user.userId === currentUserId ? `${user.name} (我)` : user.name;
+                tabsHTML += `<button onclick="switchExpenseUser('${user.userId}')" class="px-3 py-2 text-xs font-medium ${isActive ? 'bg-white text-muji-accent' : 'text-muji-secondary hover:bg-white/50'} muji-border rounded whitespace-nowrap transition-colors">${userLabel} (${user.count})</button>`;
             });
             
             tabsContainer.innerHTML = tabsHTML;
@@ -2123,7 +2175,19 @@
         function switchExpenseUser(userId) {
             currentExpenseUser = userId;
             renderExpenses();
+            
+            // 滾動到分頁容器（如果分頁很多）
+            const tabsContainer = document.getElementById('expense-tabs');
+            if (tabsContainer) {
+                const activeTab = tabsContainer.querySelector('.bg-white');
+                if (activeTab) {
+                    activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                }
+            }
         }
+        
+        // 確保函數全局可訪問
+        window.switchExpenseUser = switchExpenseUser;
         function deleteExpense(id) { 
             const expense = expenses.find(e => e.id === id);
             if (!expense) return;
