@@ -739,13 +739,13 @@
                 const tripData = snapshot.val();
                 if (tripData && tripData.data) {
                     // 從 Firebase 載入行程資料
-                    appData = tripData.data;
-                    appData.id = tripId; // 確保 ID 正確
+                    appData = { ...tripData.data, id: tripId, creatorId: tripData.creatorId || tripCreatorId || appData?.creatorId };
+                    tripCreatorId = tripData.creatorId || tripCreatorId || appData?.creatorId || null;
                     const index = trips.findIndex(t => t.id === tripId);
                     if (index >= 0) {
-                        trips[index] = appData;
+                        trips[index] = { ...appData };
                     } else {
-                        trips.push(appData);
+                        trips.push({ ...appData });
                     }
                     saveTrips();
                     renderAll();
@@ -928,7 +928,7 @@
             if (appData && currentTripId) {
                 const index = trips.findIndex(t => t.id === currentTripId);
                 if (index >= 0) {
-                    trips[index] = { ...appData };
+                    trips[index] = { ...appData, id: currentTripId, creatorId: tripCreatorId || appData.creatorId || trips[index].creatorId };
                 }
             }
             localStorage.setItem('travel_trips', JSON.stringify(trips));
@@ -944,7 +944,7 @@
             if (!appData || !currentTripId) return;
             const index = trips.findIndex(t => t.id === currentTripId);
             if (index >= 0) {
-                trips[index] = { ...appData };
+                trips[index] = { ...appData, id: currentTripId, creatorId: tripCreatorId || appData.creatorId || trips[index].creatorId };
             }
             saveTrips();
         }
@@ -1098,6 +1098,10 @@
             
             if (selectedTrip) {
                 appData = { ...selectedTrip };
+                // 重新帶入 creatorId
+                if (selectedTrip.creatorId) {
+                    tripCreatorId = selectedTrip.creatorId;
+                }
                 // 確保所有必要欄位存在
                 if (!appData.meta) {
                     appData.meta = { title: "新行程", startDate: "", endDate: "" };
@@ -1153,6 +1157,7 @@
             // 生成唯一的行程代碼（使用時間戳 + 隨機字串）
             newTrip.id = Date.now().toString() + '_' + Math.random().toString(36).substr(2, 9);
             newTrip.meta.title = `行程 ${trips.length + 1}`;
+            newTrip.creatorId = currentUserId;
             trips.push(newTrip);
             saveTrips(); // 先保存到本地
             
@@ -1171,12 +1176,13 @@
 
         // 檢查當前用戶是否為行程創建者
         async function isTripCreator(tripId) {
-            // 如果是當前行程，使用已載入的創建者信息
-            if (tripId === currentTripId && tripCreatorId) {
-                return tripCreatorId === currentUserId;
+            // 如果是當前行程，使用已載入的創建者信息或本地保存的 creatorId
+            if (tripId === currentTripId && (tripCreatorId || appData?.creatorId)) {
+                const localCreator = tripCreatorId || appData.creatorId;
+                return localCreator === currentUserId;
             }
             
-            // 如果不是當前行程，需要從 Firebase 檢查
+            // 如果不是當前行程，需要從 Firebase 或本地快取檢查
             if (firebaseDB) {
                 try {
                     const dbModule = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
@@ -1194,6 +1200,12 @@
                 } catch (error) {
                     console.error('檢查創建者失敗:', error);
                 }
+            }
+            
+            // 再 fallback 到本地 trips 陣列中的 creatorId
+            const localTrip = trips.find(t => t.id === tripId);
+            if (localTrip && localTrip.creatorId) {
+                return localTrip.creatorId === currentUserId;
             }
             
             // 默認返回 false（安全起見）
@@ -2770,7 +2782,7 @@
                 // 檢查是否已有創建者，如果沒有則設置當前用戶為創建者
                 const snapshot = await get(tripRef);
                 const existingData = snapshot.val();
-                let creatorId = tripCreatorId;
+                let creatorId = tripCreatorId || appData.creatorId;
                 
                 if (!existingData || !existingData.creatorId) {
                     // 如果 Firebase 中沒有創建者，設置當前用戶為創建者
@@ -2783,7 +2795,7 @@
                 
                 // 使用 update 以避免覆蓋 companions / expenses
                 await update(tripRef, {
-                    data: appData,
+                    data: { ...appData, creatorId: creatorId },
                     creatorId: creatorId,
                     lastEditedBy: currentUserName,
                     lastEditedAt: Date.now()
@@ -2936,7 +2948,7 @@
                             appData = tripData.data;
                             const index = trips.findIndex(t => t.id === currentTripId);
                             if (index >= 0) {
-                                trips[index] = { ...appData, id: currentTripId };
+                                trips[index] = { ...appData, id: currentTripId, creatorId: tripCreatorId || trips[index].creatorId };
                             }
                             saveTrips();
                             renderAll();
