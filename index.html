@@ -666,6 +666,7 @@
         let companions = {}; // 同行者列表 {userId: {name, joinedAt}}
         let firebaseListeners = {}; // Firebase 監聽器
         let tripCreatorId = null; // 當前行程的創建者 ID
+        let tripDeletedPrompted = false; // 是否已提示行程被刪除
         
         // 生成用戶 ID
         function generateUserId() {
@@ -1046,6 +1047,7 @@
             }
             
             currentTripId = tripId;
+            tripDeletedPrompted = false;
             localStorage.setItem('travel_current_trip_id', tripId);
             
             // 先嘗試從本地載入
@@ -1114,11 +1116,13 @@
             
             if (selectedTrip) {
                 appData = { ...selectedTrip };
-                // 載入該行程的支出
-                expenses = loadLocalExpenses(currentTripId);
-                // 重新帶入 creatorId
+                // 如有 creatorId，帶入
                 if (selectedTrip.creatorId) {
                     tripCreatorId = selectedTrip.creatorId;
+                }
+                // 只有在尚未有支出資料時，才從本地載入，避免覆蓋已從 Firebase 合併的資料
+                if (!expenses || expenses.length === 0) {
+                    expenses = loadLocalExpenses(currentTripId);
                 }
                 // 確保所有必要欄位存在
                 if (!appData.meta) {
@@ -2982,6 +2986,36 @@
                 // 監聽行程資料（使用之前已聲明的 tripRef）
                 const tripListener = dbModule.onValue(tripRef, (snapshot) => {
                     const tripData = snapshot.val();
+                    if (!tripData) {
+                        // 行程在 Firebase 中不存在（被創建者刪除）
+                        if (!tripDeletedPrompted) {
+                            tripDeletedPrompted = true;
+                            const keepLocal = confirm('此行程已被創建者刪除，是否保留本地資料？\n\n點擊「確定」保留本地資料並可自行刪除\n點擊「取消」刪除本地資料');
+                            if (!keepLocal) {
+                                trips = trips.filter(t => t.id !== currentTripId);
+                                localStorage.removeItem(getExpensesKey(currentTripId));
+                                if (trips.length === 0) {
+                                    currentTripId = null;
+                                    appData = null;
+                                    expenses = [];
+                                    tripCreatorId = null;
+                                } else {
+                                    currentTripId = trips[0].id;
+                                    appData = { ...trips[0] };
+                                    expenses = loadLocalExpenses(currentTripId);
+                                }
+                                saveTrips();
+                                renderTripList();
+                                renderAll();
+                                if (appData) initWalletAndLists();
+                                return;
+                            } else {
+                                // 保留本地資料，清除創建者限制，允許刪除
+                                tripCreatorId = null;
+                            }
+                        }
+                        return;
+                    }
                     if (tripData) {
                         // 更新創建者信息
                         if (tripData.creatorId) {
