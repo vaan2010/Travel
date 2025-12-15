@@ -758,10 +758,12 @@
                         tripCreatorId = null;
                     }
                     
-                    // 載入同行者資料
-                    if (tripData.companions) {
-                        companions = tripData.companions;
+                    // 載入同行者資料（合併而不是覆蓋）
+                    if (tripData.companions && typeof tripData.companions === 'object') {
+                        // 合併現有的同行者資料，避免覆蓋
+                        companions = { ...companions, ...tripData.companions };
                         renderCompanionsList();
+                        console.log('已載入同行者資料:', Object.keys(companions).length, '人');
                     }
                     
                     // 載入支出資料
@@ -965,43 +967,61 @@
         }
 
         // 渲染行程列表
-        function renderTripList() {
+        async function renderTripList() {
             const container = document.getElementById('trip-list');
             container.innerHTML = '';
             
-            trips.forEach((trip) => {
+            // 先渲染所有行程（不顯示刪除按鈕）
+            const tripElements = trips.map((trip) => {
                 const isActive = trip.id === currentTripId;
-                
-                // 只有當前行程才檢查創建者權限（因為只有當前行程的創建者信息已載入）
-                // 其他行程在選擇時會載入創建者信息
-                let canDelete = false;
-                if (trip.id === currentTripId) {
-                    canDelete = isTripCreator(trip.id);
-                }
-                // 對於非當前行程，暫時不顯示刪除按鈕（選擇後會根據權限顯示）
+                const startDate = trip.meta?.startDate ? trip.meta.startDate.replace(/-/g, '.') : 'TBD';
+                const endDate = trip.meta?.endDate && trip.meta.endDate.length > 5 ? trip.meta.endDate.substring(5).replace(/-/g, '.') : (trip.meta?.endDate || 'TBD');
                 
                 const div = document.createElement('div');
                 div.className = `p-4 muji-border cursor-pointer transition-colors ${isActive ? 'bg-muji-light border-l-2 border-l-muji-primary' : 'bg-white hover:bg-muji-light'}`;
                 div.onclick = () => selectTrip(trip.id);
-                
-                const startDate = trip.meta?.startDate ? trip.meta.startDate.replace(/-/g, '.') : 'TBD';
-                const endDate = trip.meta?.endDate && trip.meta.endDate.length > 5 ? trip.meta.endDate.substring(5).replace(/-/g, '.') : (trip.meta?.endDate || 'TBD');
-                
-                const deleteButton = canDelete 
-                    ? `<button onclick="event.stopPropagation(); deleteTrip('${trip.id}')" class="btn-delete ml-2"><i class="fas fa-trash-alt text-xs"></i></button>`
-                    : '';
+                div.dataset.tripId = trip.id;
                 
                 div.innerHTML = `
                     <div class="flex justify-between items-start mb-2">
                         <h3 class="font-medium text-muji-accent">${trip.meta?.title || '未命名行程'}</h3>
-                        ${deleteButton}
+                        <span class="delete-button-placeholder"></span>
                     </div>
                     <p class="text-xs text-muji-secondary">
                         ${startDate} - ${endDate}
                     </p>
                 `;
                 container.appendChild(div);
+                return { trip, div };
             });
+            
+            // 異步檢查每個行程的刪除權限
+            if (firebaseDB) {
+                for (const { trip, div } of tripElements) {
+                    const canDelete = await canDeleteTrip(trip.id);
+                    const placeholder = div.querySelector('.delete-button-placeholder');
+                    if (placeholder) {
+                        if (canDelete) {
+                            placeholder.outerHTML = `<button onclick="event.stopPropagation(); deleteTrip('${trip.id}')" class="btn-delete ml-2"><i class="fas fa-trash-alt text-xs"></i></button>`;
+                        } else {
+                            placeholder.remove();
+                        }
+                    }
+                }
+            } else {
+                // 如果沒有 Firebase，只檢查當前行程
+                for (const { trip, div } of tripElements) {
+                    const canDelete = trip.id === currentTripId ? isTripCreator(trip.id) : false;
+                    const placeholder = div.querySelector('.delete-button-placeholder');
+                    if (placeholder) {
+                        if (canDelete) {
+                            placeholder.outerHTML = `<button onclick="event.stopPropagation(); deleteTrip('${trip.id}')" class="btn-delete ml-2"><i class="fas fa-trash-alt text-xs"></i></button>`;
+                        } else {
+                            placeholder.remove();
+                        }
+                    }
+                }
+            }
         }
 
         // 選擇行程
@@ -1097,10 +1117,65 @@
             return tripCreatorId === currentUserId;
         }
         
+        // 檢查是否可以刪除行程
+        async function canDeleteTrip(tripId) {
+            // 如果是創建者，可以刪除
+            if (isTripCreator(tripId)) {
+                return true;
+            }
+            
+            // 如果 Firebase 已初始化，檢查創建者是否還在
+            if (firebaseDB) {
+                try {
+                    const dbModule = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+                    const tripRef = dbModule.ref(firebaseDB, `trips/${tripId}`);
+                    const snapshot = await new Promise((resolve) => {
+                        dbModule.onValue(tripRef, (snap) => {
+                            resolve(snap);
+                        }, { onlyOnce: true });
+                    });
+                    
+                    const tripData = snapshot.val();
+                    
+                    // 如果 Firebase 中沒有該行程，說明已被刪除，可以刪除本地資料
+                    if (!tripData) {
+                        console.log('行程在 Firebase 中不存在，允許刪除本地資料');
+                        return true;
+                    }
+                    
+                    // 檢查創建者是否還在同行者列表中
+                    const creatorId = tripData.creatorId;
+                    if (creatorId) {
+                        // 檢查創建者是否還在同行者列表中
+                        const companionsData = tripData.companions || {};
+                        if (!companionsData[creatorId]) {
+                            // 創建者不在同行者列表中（已離開或刪除），可以刪除
+                            console.log('創建者已不在同行者列表中，允許刪除');
+                            return true;
+                        }
+                        // 創建者還在，不能刪除
+                        return false;
+                    } else {
+                        // 沒有創建者信息，可能是舊資料，允許刪除
+                        console.log('沒有創建者信息，允許刪除');
+                        return true;
+                    }
+                } catch (error) {
+                    console.error('檢查刪除權限失敗:', error);
+                    // 出錯時，如果是創建者就允許刪除，否則不允許
+                    return isTripCreator(tripId);
+                }
+            }
+            
+            // 如果沒有 Firebase，只有創建者可以刪除
+            return isTripCreator(tripId);
+        }
+        
         // 刪除行程
         async function deleteTrip(tripId) {
-            // 檢查權限：只有創建者可以刪除
-            if (!isTripCreator(tripId)) {
+            // 檢查權限
+            const hasPermission = await canDeleteTrip(tripId);
+            if (!hasPermission) {
                 alert('只有行程創建者可以刪除行程');
                 return;
             }
@@ -2468,15 +2543,11 @@
                 localStorage.setItem('travel_current_trip_id', code);
                 await selectTrip(code);
                 
-                // 設置 Firebase 監聽器（如果還沒設置）
+                // selectTrip 已經設置了監聽器，這裡只需要同步用戶資料
                 if (firebaseDB) {
-                    setupFirebaseListeners();
                     // 立即同步用戶資料到 Firebase，這樣其他用戶就能看到新加入的同行者
                     await syncCurrentUserToFirebase();
-                    // 等待一下讓 Firebase 更新，然後重新渲染同行者列表
-                    setTimeout(() => {
-                        renderCompanionsList();
-                    }, 500);
+                    // 監聽器會自動更新同行者列表，不需要手動渲染
                 }
                 
                 alert('已加入行程');
@@ -2509,11 +2580,27 @@
         
         function renderCompanionsList() {
             const listEl = document.getElementById('companions-list');
-            if (!listEl) return;
+            if (!listEl) {
+                console.warn('找不到 companions-list 元素');
+                return;
+            }
+            
+            const companionKeys = Object.keys(companions);
+            console.log('渲染同行者列表，共', companionKeys.length, '人:', companionKeys);
             
             listEl.innerHTML = '';
-            Object.keys(companions).forEach(userId => {
+            
+            if (companionKeys.length === 0) {
+                listEl.innerHTML = '<div class="text-sm text-muji-secondary text-center py-4">尚無同行者</div>';
+                return;
+            }
+            
+            companionKeys.forEach(userId => {
                 const companion = companions[userId];
+                if (!companion || !companion.name) {
+                    console.warn('無效的同行者資料:', userId, companion);
+                    return;
+                }
                 const isCurrentUser = userId === currentUserId;
                 listEl.innerHTML += `
                     <div class="bg-white p-3 rounded border flex items-center justify-between">
@@ -2524,10 +2611,6 @@
                     </div>
                 `;
             });
-            
-            if (Object.keys(companions).length === 0) {
-                listEl.innerHTML = '<div class="text-sm text-muji-secondary text-center py-4">尚無同行者</div>';
-            }
         }
         
         // --- Firebase 同步功能 ---
@@ -2603,17 +2686,51 @@
             try {
                 const dbModule = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
                 
+                // 先清除舊的監聽器（如果存在）
+                if (firebaseListeners.companions) {
+                    dbModule.off(firebaseListeners.companions);
+                }
+                if (firebaseListeners.expenses) {
+                    dbModule.off(firebaseListeners.expenses);
+                }
+                if (firebaseListeners.trip) {
+                    dbModule.off(firebaseListeners.trip);
+                }
+                
                 // 監聽同行者
                 const companionsRef = dbModule.ref(firebaseDB, `trips/${currentTripId}/companions`);
-                dbModule.onValue(companionsRef, (snapshot) => {
-                    companions = snapshot.val() || {};
-                    renderCompanionsList();
+                const companionsListener = dbModule.onValue(companionsRef, (snapshot) => {
+                    const newCompanions = snapshot.val();
+                    console.log('收到同行者更新:', newCompanions);
+                    
+                    if (newCompanions && typeof newCompanions === 'object') {
+                        // 確保保留當前用戶的資料（如果存在）
+                        const currentUserData = companions[currentUserId];
+                        companions = newCompanions;
+                        
+                        // 如果當前用戶不在新資料中，但本地有，則保留
+                        if (!companions[currentUserId] && currentUserData) {
+                            companions[currentUserId] = currentUserData;
+                        }
+                        
+                        renderCompanionsList();
+                        console.log('同行者列表已更新:', Object.keys(companions).length, '人');
+                    } else if (newCompanions === null) {
+                        // Firebase 返回 null 表示沒有資料
+                        // 只清空如果本地也沒有資料，否則保留本地資料
+                        if (Object.keys(companions).length === 0) {
+                            companions = {};
+                            renderCompanionsList();
+                        }
+                        console.log('Firebase 同行者資料為空，保留本地資料');
+                    }
                 });
+                firebaseListeners.companions = companionsListener;
                 
                 // 監聽支出
                 const expensesRef = dbModule.ref(firebaseDB, `trips/${currentTripId}/expenses`);
                 let firstExpenseLoad = true; // 標記是否為首次載入
-                dbModule.onValue(expensesRef, (snapshot) => {
+                const expensesListener = dbModule.onValue(expensesRef, (snapshot) => {
                     const firebaseExpenses = snapshot.val();
                     if (firebaseExpenses !== null && firebaseExpenses !== undefined) {
                         // Firebase 返回的可能是物件或陣列
@@ -2651,10 +2768,11 @@
                         firstExpenseLoad = false;
                     }
                 });
+                firebaseListeners.expenses = expensesListener;
                 
                 // 監聽行程資料
                 const tripRef = dbModule.ref(firebaseDB, `trips/${currentTripId}`);
-                dbModule.onValue(tripRef, (snapshot) => {
+                const tripListener = dbModule.onValue(tripRef, (snapshot) => {
                     const tripData = snapshot.val();
                     if (tripData) {
                         // 更新創建者信息
@@ -2701,6 +2819,7 @@
                         }
                     }
                 });
+                firebaseListeners.trip = tripListener;
                 
             } catch (error) {
                 console.error('設定 Firebase 監聽失敗:', error);
