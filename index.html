@@ -1076,10 +1076,31 @@
                 
                 // 設定 Firebase 監聽和同步（如果 Firebase 已初始化）
                 if (firebaseDB) {
-                    setupFirebaseListeners();
-                    syncCurrentUserToFirebase();
-                    // 確保行程資料也同步到 Firebase（如果本地有資料但 Firebase 沒有）
-                    syncTripDataToFirebase();
+                    // 先檢查行程是否還存在於 Firebase
+                    try {
+                        const dbModule = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+                        const tripRef = dbModule.ref(firebaseDB, `trips/${tripId}`);
+                        const snapshot = await new Promise((resolve) => {
+                            dbModule.onValue(tripRef, (snap) => {
+                                resolve(snap);
+                            }, { onlyOnce: true });
+                        });
+                        
+                        // 如果行程存在，設置監聽器
+                        if (snapshot.val()) {
+                            setupFirebaseListeners();
+                            syncCurrentUserToFirebase();
+                            // 確保行程資料也同步到 Firebase（如果本地有資料但 Firebase 沒有）
+                            syncTripDataToFirebase();
+                        } else {
+                            // 行程在 Firebase 中不存在，不設置監聽器
+                            console.log('行程在 Firebase 中不存在，跳過設置監聽器');
+                        }
+                    } catch (error) {
+                        console.error('檢查行程是否存在失敗:', error);
+                        // 出錯時仍然嘗試設置監聽器
+                        setupFirebaseListeners();
+                    }
                 }
             } else {
                 alert('找不到該行程');
@@ -2687,14 +2708,41 @@
                 const dbModule = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
                 
                 // 先清除舊的監聽器（如果存在）
-                if (firebaseListeners.companions) {
-                    dbModule.off(firebaseListeners.companions);
+                // onValue 返回的是一個 unsubscribe 函數，直接調用它即可
+                if (firebaseListeners.companions && typeof firebaseListeners.companions === 'function') {
+                    try {
+                        firebaseListeners.companions();
+                    } catch (e) {
+                        console.warn('清除同行者監聽器失敗:', e);
+                    }
                 }
-                if (firebaseListeners.expenses) {
-                    dbModule.off(firebaseListeners.expenses);
+                if (firebaseListeners.expenses && typeof firebaseListeners.expenses === 'function') {
+                    try {
+                        firebaseListeners.expenses();
+                    } catch (e) {
+                        console.warn('清除支出監聽器失敗:', e);
+                    }
                 }
-                if (firebaseListeners.trip) {
-                    dbModule.off(firebaseListeners.trip);
+                if (firebaseListeners.trip && typeof firebaseListeners.trip === 'function') {
+                    try {
+                        firebaseListeners.trip();
+                    } catch (e) {
+                        console.warn('清除行程監聽器失敗:', e);
+                    }
+                }
+                
+                // 檢查行程是否還存在於 Firebase
+                const tripRef = dbModule.ref(firebaseDB, `trips/${currentTripId}`);
+                const tripSnapshot = await new Promise((resolve) => {
+                    dbModule.onValue(tripRef, (snap) => {
+                        resolve(snap);
+                    }, { onlyOnce: true });
+                });
+                
+                // 如果行程在 Firebase 中不存在，不設置監聽器
+                if (!tripSnapshot.val()) {
+                    console.log('行程在 Firebase 中不存在，跳過設置監聽器');
+                    return;
                 }
                 
                 // 監聽同行者
@@ -2725,6 +2773,7 @@
                         console.log('Firebase 同行者資料為空，保留本地資料');
                     }
                 });
+                // onValue 返回的就是 unsubscribe 函數
                 firebaseListeners.companions = companionsListener;
                 
                 // 監聽支出
