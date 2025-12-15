@@ -1055,28 +1055,33 @@
                     
                     // 如果行程在 Firebase 中不存在，說明已被創建者刪除
                     if (!tripData) {
-                        const keepLocal = confirm('此行程已被創建者刪除，是否保留本地資料？\n\n點擊「確定」保留本地資料\n點擊「取消」刪除本地資料');
+                        // 如果本地判定自己是創建者（新建但尚未同步），則跳過提示，直接同步
+                        if (tripCreatorId && tripCreatorId === currentUserId) {
+                            console.log('行程尚未同步到 Firebase，創建者為當前用戶，跳過刪除提示並執行同步');
+                        } else {
+                            const keepLocal = confirm('此行程已被創建者刪除，是否保留本地資料？\n\n點擊「確定」保留本地資料\n點擊「取消」刪除本地資料');
                         
-                        if (!keepLocal) {
-                            // 用戶選擇不保留，直接刪除本地行程
-                            trips = trips.filter(t => t.id !== tripId);
-                            if (trips.length === 0) {
-                                currentTripId = null;
-                                appData = null;
-                                tripCreatorId = null;
-                            } else if (currentTripId === tripId) {
-                                // 刪除的是當前行程，切換到第一個
-                                currentTripId = trips[0].id;
-                                appData = { ...trips[0] };
+                            if (!keepLocal) {
+                                // 用戶選擇不保留，直接刪除本地行程
+                                trips = trips.filter(t => t.id !== tripId);
+                                if (trips.length === 0) {
+                                    currentTripId = null;
+                                    appData = null;
+                                    tripCreatorId = null;
+                                } else if (currentTripId === tripId) {
+                                    // 刪除的是當前行程，切換到第一個
+                                    currentTripId = trips[0].id;
+                                    appData = { ...trips[0] };
+                                }
+                                saveTrips();
+                                renderTripList();
+                                renderAll();
+                                if (appData) {
+                                    initWalletAndLists();
+                                }
+                                toggleSidebar();
+                                return; // 不繼續執行後續邏輯
                             }
-                            saveTrips();
-                            renderTripList();
-                            renderAll();
-                            if (appData) {
-                                initWalletAndLists();
-                            }
-                            toggleSidebar();
-                            return; // 不繼續執行後續邏輯
                         }
                         // 用戶選擇保留，繼續使用本地資料，並允許刪除
                         tripCreatorId = null; // 清除創建者信息，允許刪除
@@ -1221,25 +1226,30 @@
                         return true;
                     }
                     
-                    // 檢查創建者是否還在同行者列表中
-                    const creatorId = tripData.creatorId;
-                    if (creatorId) {
-                        // 檢查創建者是否還在同行者列表中
-                        const companionsData = tripData.companions || {};
-                        if (!companionsData[creatorId]) {
-                            // 創建者不在同行者列表中（已離開或刪除），可以刪除
-                            console.log('創建者已不在同行者列表中，允許刪除');
-                            return true;
-                        }
-                        // 創建者還在同行者列表中，不能刪除
-                        console.log('創建者仍在同行者列表中，不允許刪除');
-                        return false;
-                    } else {
-                        // 沒有創建者信息，但行程存在於 Firebase
-                        // 為了安全起見，不允許非創建者刪除
-                        console.log('沒有創建者信息，但行程存在，不允許非創建者刪除');
+                // 檢查創建者是否還在同行者列表中
+                const creatorId = tripData.creatorId;
+                if (creatorId) {
+                    const companionsData = tripData.companions;
+                    // 如果 companions 資料缺失，保守起見視為創建者仍在，不能刪除
+                    if (!companionsData || typeof companionsData !== 'object') {
+                        console.log('同行者資料缺失，視為創建者仍在，不允許刪除');
                         return false;
                     }
+                    // 檢查創建者是否還在同行者列表中
+                    if (!companionsData[creatorId]) {
+                        // 創建者不在同行者列表中（已離開或刪除），可以刪除
+                        console.log('創建者已不在同行者列表中，允許刪除');
+                        return true;
+                    }
+                    // 創建者還在同行者列表中，不能刪除
+                    console.log('創建者仍在同行者列表中，不允許刪除');
+                    return false;
+                } else {
+                    // 沒有創建者信息，但行程存在於 Firebase
+                    // 為了安全起見，不允許非創建者刪除
+                    console.log('沒有創建者信息，但行程存在，不允許非創建者刪除');
+                    return false;
+                }
                 } catch (error) {
                     console.error('檢查刪除權限失敗:', error);
                     // 出錯時，如果是創建者就允許刪除，否則不允許
