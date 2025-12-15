@@ -767,7 +767,7 @@
                     }
                     
                     // 載入支出資料
-                    const localExpenses = JSON.parse(localStorage.getItem('travel_expenses')) || [];
+            const localExpenses = loadLocalExpenses(tripId);
                     
                     if (tripData.expenses) {
                         const expenseArray = Array.isArray(tripData.expenses) ? tripData.expenses : Object.values(tripData.expenses);
@@ -785,7 +785,7 @@
                             } else {
                                 expenses = expenseArray;
                             }
-                            localStorage.setItem('travel_expenses', JSON.stringify(expenses));
+                            saveLocalExpenses(tripId, expenses);
                             renderExpenses();
                         } else if (localExpenses.length > 0) {
                             // Firebase 沒有支出資料，但本地有，則同步本地資料到 Firebase
@@ -834,11 +834,15 @@
                     if (!appData.hotels) appData.hotels = [];
                     if (!appData.itinerary) appData.itinerary = [];
                     if (!appData.guides) appData.guides = [];
+                    
+                    // 載入對應行程的支出
+                    expenses = loadLocalExpenses(currentTripId);
                 } else {
                     // 過濾後沒有有效行程
                     trips = [];
                     currentTripId = null;
                     appData = null;
+                    expenses = [];
                     // 清除無效資料
                     localStorage.removeItem('travel_trips');
                     localStorage.removeItem('travel_current_trip_id');
@@ -848,6 +852,7 @@
                 trips = [];
                 currentTripId = null;
                 appData = null;
+                expenses = [];
                 // 清除可能存在的舊資料
                 localStorage.removeItem('travel_trips');
                 localStorage.removeItem('travel_current_trip_id');
@@ -1029,6 +1034,12 @@
 
         // 選擇行程
         async function selectTrip(tripId) {
+            const prevTripId = currentTripId;
+            // 先保存前一個行程的支出
+            if (prevTripId) {
+                saveLocalExpenses(prevTripId, expenses);
+            }
+            
             currentTripId = tripId;
             localStorage.setItem('travel_current_trip_id', tripId);
             
@@ -1098,6 +1109,8 @@
             
             if (selectedTrip) {
                 appData = { ...selectedTrip };
+                // 載入該行程的支出
+                expenses = loadLocalExpenses(currentTripId);
                 // 重新帶入 creatorId
                 if (selectedTrip.creatorId) {
                     tripCreatorId = selectedTrip.creatorId;
@@ -1295,12 +1308,16 @@
                     }
                 }
                 
+                // 移除本地對應行程的支出資料
+                localStorage.removeItem(getExpensesKey(tripId));
+                
                 trips = trips.filter(t => t.id !== tripId);
                 if (trips.length === 0) {
                     // 刪除所有行程
                     currentTripId = null;
                     appData = null;
                     tripCreatorId = null;
+                    expenses = [];
                 } else if (currentTripId === tripId) {
                     // 刪除的是當前行程，切換到第一個
                     currentTripId = trips[0].id;
@@ -1309,6 +1326,8 @@
                     if (firebaseDB) {
                         await loadTripFromFirebase(currentTripId);
                     }
+                    // 載入新當前行程的支出
+                    expenses = loadLocalExpenses(currentTripId);
                 }
                 saveTrips();
                 renderTripList();
@@ -2093,8 +2112,19 @@
         }
 
         // --- LISTS & WALLET ---
+        const getExpensesKey = (tripId) => tripId ? `travel_expenses_${tripId}` : 'travel_expenses';
+        const loadLocalExpenses = (tripId) => {
+            if (!tripId) return [];
+            try { return JSON.parse(localStorage.getItem(getExpensesKey(tripId))) || []; }
+            catch { return []; }
+        };
+        const saveLocalExpenses = (tripId, data) => {
+            if (!tripId) return;
+            localStorage.setItem(getExpensesKey(tripId), JSON.stringify(data || []));
+        };
+        
         let checklist = JSON.parse(localStorage.getItem('travel_checklist')) || [{text: '護照', checked: false, highlight: false}];
-        let expenses = JSON.parse(localStorage.getItem('travel_expenses')) || [];
+        let expenses = [];
         let currentPhotoBase64 = null;
 
         // 幣別符號對應
@@ -2196,8 +2226,8 @@
                 currencySelect.value = savedCurrency;
             }
             
-            // 確保支出資料已從 localStorage 載入
-            const savedExpenses = JSON.parse(localStorage.getItem('travel_expenses')) || [];
+            // 確保支出資料已從 localStorage 載入（依行程分開存）
+            const savedExpenses = loadLocalExpenses(currentTripId);
             if (savedExpenses.length > 0 && expenses.length === 0) {
                 expenses = savedExpenses;
                 console.log('從 localStorage 載入支出資料:', expenses.length, '筆');
@@ -2382,7 +2412,7 @@
             };
             expenses.unshift(newExpense); 
             try { 
-                localStorage.setItem('travel_expenses', JSON.stringify(expenses)); 
+                saveLocalExpenses(currentTripId, expenses);
                 syncExpensesToFirebase();
                 document.getElementById('expense-desc').value = ''; 
                 document.getElementById('expense-math').value = ''; 
@@ -2517,7 +2547,7 @@
             }
             if(confirm('刪除？')) { 
                 expenses = expenses.filter(e=>e.id!==id); 
-                localStorage.setItem('travel_expenses', JSON.stringify(expenses));
+                saveLocalExpenses(currentTripId, expenses);
                 syncExpensesToFirebase();
                 renderExpenses(); 
             } 
@@ -2910,7 +2940,7 @@
                             } else {
                                 expenses = expenseArray;
                             }
-                            localStorage.setItem('travel_expenses', JSON.stringify(expenses));
+                            saveLocalExpenses(currentTripId, expenses);
                             renderExpenses();
                             console.log('支出資料已從 Firebase 同步:', expenseArray.length, '筆');
                             firstExpenseLoad = false;
@@ -2968,7 +2998,7 @@
                                 const firebaseIds = new Set(expenseArray.map(e => e.id));
                                 const localOnly = expenses.filter(e => !firebaseIds.has(e.id));
                                 expenses = [...expenseArray, ...localOnly];
-                                localStorage.setItem('travel_expenses', JSON.stringify(expenses));
+                                saveLocalExpenses(currentTripId, expenses);
                                 renderExpenses();
                             }
                         }
@@ -2989,7 +3019,7 @@
         function viewImage(src) { const w = window.open(""); w.document.write('<img src="'+src+'" style="width:100%">'); }
         function parseMemoLinks(t) { const m = t.match(/(https?:\/\/[^\s]+)/g); const c = document.getElementById('memo-links-preview'); c.innerHTML = ''; if(m) m.forEach(u => c.innerHTML += `<a href="${u}" target="_blank" class="text-xs bg-white muji-border text-muji-primary px-3 py-1 truncate max-w-full block hover:bg-muji-light transition-colors"><i class="fas fa-link mr-1"></i> ${u.substring(0,30)}...</a>`); }
         function exportData() { const d = { appData, expenses, checklist, memo: localStorage.getItem('travel_memo'), rate: localStorage.getItem('travel_rate') }; document.getElementById('data-area').value = JSON.stringify(d); document.getElementById('copy-btn').classList.remove('hidden'); alert('代碼已產生'); }
-        function importData() { const v = document.getElementById('data-area').value.trim(); if(!v) return alert('請貼上代碼'); if(confirm('確定覆蓋？')) { try { const d = JSON.parse(v); if(d.appData) localStorage.setItem('travel_data', JSON.stringify(d.appData)); if(d.expenses) localStorage.setItem('travel_expenses', JSON.stringify(d.expenses)); if(d.checklist) localStorage.setItem('travel_checklist', JSON.stringify(d.checklist)); if(d.memo) localStorage.setItem('travel_memo', d.memo); if(d.rate) localStorage.setItem('travel_rate', d.rate); location.reload(); } catch(e) { alert('代碼錯誤'); } } }
+        function importData() { const v = document.getElementById('data-area').value.trim(); if(!v) return alert('請貼上代碼'); if(confirm('確定覆蓋？')) { try { const d = JSON.parse(v); if(d.appData) localStorage.setItem('travel_data', JSON.stringify(d.appData)); if(d.expenses) saveLocalExpenses(currentTripId, d.expenses); if(d.checklist) localStorage.setItem('travel_checklist', JSON.stringify(d.checklist)); if(d.memo) localStorage.setItem('travel_memo', d.memo); if(d.rate) localStorage.setItem('travel_rate', d.rate); location.reload(); } catch(e) { alert('代碼錯誤'); } } }
         function copyToClipboard() { const a = document.getElementById('data-area'); a.select(); navigator.clipboard.writeText(a.value).then(()=>alert('已複製')); }
         function switchListTab(tab) {
             const checklistDiv = document.getElementById('content-checklist');
