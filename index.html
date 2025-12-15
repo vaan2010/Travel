@@ -2465,6 +2465,7 @@
         }
         
         // 確保函數在全局作用域
+        window.toggleSidebar = toggleSidebar;
         window.openCompanionsManager = openCompanionsManager;
         window.closeCompanionsManager = closeCompanionsManager;
         window.setCurrentUser = setCurrentUser;
@@ -2819,8 +2820,7 @@
                 });
                 firebaseListeners.expenses = expensesListener;
                 
-                // 監聽行程資料
-                const tripRef = dbModule.ref(firebaseDB, `trips/${currentTripId}`);
+                // 監聽行程資料（使用之前已聲明的 tripRef）
                 const tripListener = dbModule.onValue(tripRef, (snapshot) => {
                     const tripData = snapshot.val();
                     if (tripData) {
