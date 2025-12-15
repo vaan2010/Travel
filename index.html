@@ -2790,14 +2790,32 @@
         async function syncExpensesToFirebase() {
             if (!firebaseDB || !currentTripId) return;
             try {
-                const { ref, set } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
+                const { ref, get, set } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
                 const expensesRef = ref(firebaseDB, `trips/${currentTripId}/expenses`);
                 
-                // 確保 expenses 是陣列
-                const expensesArray = Array.isArray(expenses) ? expenses : [];
-                await set(expensesRef, expensesArray);
+                // 取回 Firebase 現有支出，與本地支出合併（依 id 去重）
+                let firebaseExpenses = [];
+                try {
+                    const snap = await get(expensesRef);
+                    const val = snap.val();
+                    if (val !== null && val !== undefined) {
+                        if (Array.isArray(val)) firebaseExpenses = val;
+                        else if (typeof val === 'object') firebaseExpenses = Object.values(val);
+                    }
+                } catch (e) {
+                    console.warn('讀取 Firebase 支出資料失敗，使用本地資料:', e);
+                }
                 
-                console.log('支出資料已同步到 Firebase:', expensesArray.length, '筆');
+                const localArray = Array.isArray(expenses) ? expenses : [];
+                const mergedMap = new Map();
+                [...firebaseExpenses, ...localArray].forEach(item => {
+                    if (item && item.id !== undefined) mergedMap.set(item.id, item);
+                });
+                const merged = Array.from(mergedMap.values());
+                
+                await set(expensesRef, merged);
+                
+                console.log('支出資料已同步到 Firebase:', merged.length, '筆');
             } catch (error) {
                 console.error('同步支出資料失敗:', error);
             }
