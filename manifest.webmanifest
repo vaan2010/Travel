@@ -1,0 +1,17 @@
+{
+  "name": "旅跡",
+  "short_name": "旅跡",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#eaf3f5",
+  "theme_color": "#0d7a7a",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
