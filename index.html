@@ -73,7 +73,18 @@
       box-shadow: 0 16px 40px rgba(22,48,56,.1); border: 1px solid var(--line);
       margin: auto 0;
     }
-    .gate-brand { font-family: var(--display); font-size: 2rem; text-align: center; margin: 0 0 4px; color: var(--accent-deep); }
+    .gate-brand {
+      font-family: var(--display); font-size: 2rem; text-align: center; margin: 0; color: var(--accent-deep);
+    }
+    .gate-brand-row {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      margin: 0 0 4px;
+    }
+    .gate-brand-logo {
+      width: 44px; height: 44px; border-radius: 12px;
+      object-fit: cover; flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(22,48,56,.12);
+    }
     .gate-sub { text-align: center; color: var(--muted); font-size: .88rem; margin: 0 0 18px; }
     .gate-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
     .gate-tabs button {
@@ -167,6 +178,171 @@
       overflow-y: auto; -webkit-overflow-scrolling: touch;
     }
 
+    /* Home */
+    #viewHome {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100dvh;
+      position: relative;
+      background:
+        radial-gradient(ellipse 90% 55% at 8% -8%, rgba(13,122,122,.22), transparent 58%),
+        radial-gradient(ellipse 70% 45% at 100% 0%, rgba(45,110,120,.14), transparent 52%),
+        linear-gradient(180deg, #e8f4f6 0%, #d5e6ea 55%, #cfe0e5 100%);
+    }
+    #viewHome::before {
+      content: "";
+      position: absolute; inset: 0;
+      pointer-events: none;
+      opacity: .4;
+      background-image: radial-gradient(rgba(22,48,56,.06) 0.7px, transparent 0.8px);
+      background-size: 14px 14px;
+      mask-image: linear-gradient(180deg, #000 0%, transparent 78%);
+    }
+    #viewHome > * { position: relative; z-index: 1; }
+    #viewHome .main {
+      padding-bottom: calc(var(--safe-b) + 28px);
+    }
+    .home-hero {
+      padding: calc(18px + var(--safe-t)) 18px 10px;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+    }
+    .home-hero-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .home-brand-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0 0 14px;
+    }
+    .home-brand-logo {
+      width: clamp(44px, 11vw, 52px);
+      height: clamp(44px, 11vw, 52px);
+      border-radius: 14px;
+      object-fit: cover;
+      flex-shrink: 0;
+      box-shadow: 0 6px 16px rgba(22,48,56,.14);
+    }
+    .home-brand {
+      font-family: var(--display);
+      font-size: clamp(2.05rem, 9vw, 2.55rem);
+      font-weight: 700;
+      line-height: 1.05;
+      margin: 0;
+      color: var(--accent-deep);
+      letter-spacing: -.02em;
+    }
+    .home-hello {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .home-avatar.avatar {
+      width: 40px;
+      height: 40px;
+      font-size: .95rem;
+      border-width: 2px;
+      border-color: rgba(255,255,255,.9);
+      box-shadow: 0 4px 12px rgba(22,48,56,.12);
+    }
+    .home-hello-text {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      min-width: 0;
+    }
+    .home-hello-label {
+      font-size: .72rem;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: .02em;
+    }
+    .home-hello-text strong {
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .home-logout {
+      flex-shrink: 0;
+      margin-top: 6px;
+      padding: 6px 12px !important;
+      min-height: 0 !important;
+      height: auto !important;
+      font-size: .75rem !important;
+      background: rgba(255,255,255,.72) !important;
+      backdrop-filter: blur(8px);
+    }
+    .home-tabs {
+      margin-bottom: 12px;
+    }
+    .home-panel-title {
+      margin: 0 0 12px;
+      font-size: .82rem;
+      font-weight: 800;
+      color: var(--accent-deep);
+      letter-spacing: .04em;
+    }
+    .home-create-panel {
+      margin-bottom: 10px;
+    }
+    .home-list-panel {
+      background: rgba(255,255,255,.78);
+      box-shadow: 0 6px 18px rgba(22,48,56,.04);
+    }
+    .home-list-panel .money-sec {
+      margin-top: 0 !important;
+      margin-bottom: 8px;
+    }
+    .home-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 6px;
+      padding: 22px 14px 18px;
+      border-radius: 14px;
+      border: 1px dashed rgba(13,122,122,.28);
+      background: rgba(13,122,122,.04);
+      color: var(--muted);
+    }
+    .home-empty.hidden { display: none !important; }
+    .home-empty-mark {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      border: 1px solid var(--line);
+      color: var(--accent-deep);
+      font-family: var(--display);
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .home-empty p {
+      margin: 0;
+      font-size: .92rem;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .home-empty span {
+      font-size: .78rem;
+      line-height: 1.45;
+      max-width: 16em;
+    }
+
     .panel {
       background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
       padding: 14px; margin-bottom: 12px; box-shadow: 0 8px 24px rgba(22,48,56,.05);
@@ -178,6 +354,11 @@
     .field input[type="time"] {
       min-width: 0; width: 100%;
       -webkit-appearance: none; appearance: none;
+    }
+    .field input[type="date"] {
+      width: 100%; min-width: 0; box-sizing: border-box;
+      min-height: 44px; padding: 10px 12px;
+      font-size: 1rem; font-variant-numeric: tabular-nums;
     }
     .field input[type="file"] { padding: 10px 12px; }
     .hint { font-size: .8rem; color: var(--muted); line-height: 1.4; margin: 0 0 16px; }
@@ -203,6 +384,32 @@
     }
     .more-link strong { display: block; font-size: .95rem; color: var(--ink); }
     .more-link span { font-size: .75rem; color: var(--muted); }
+    .history-card {
+      cursor: pointer;
+      transition: border-color .15s, background .15s;
+    }
+    .history-card:active { background: #eef5f6; }
+    .history-card.is-restorable {
+      border-color: #c5dcdf;
+    }
+    .history-card.is-restorable:hover {
+      border-color: var(--accent);
+      background: #f2f9f9;
+    }
+    .history-card:not(.is-restorable) {
+      opacity: .72;
+      cursor: default;
+    }
+    .history-card .history-hint {
+      margin-top: 6px;
+      font-size: .72rem;
+      font-weight: 600;
+      color: var(--accent-deep);
+    }
+    .history-card:not(.is-restorable) .history-hint {
+      color: var(--muted);
+      font-weight: 500;
+    }
     .profile-avatar-preview {
       width: 72px; height: 72px; border-radius: 18px; border: 1px solid var(--line);
       background: #eef3f5 center/cover no-repeat;
@@ -236,9 +443,45 @@
     .day-tab {
       flex: 0 0 auto; padding: 6px 16px; border-radius: 999px; font-weight: 700; font-size: .85rem;
       background: #fff; border: 1px solid var(--line); color: var(--muted); white-space: nowrap;
+      line-height: 1.15; text-align: center;
     }
     .day-tab.is-active { background: var(--ink); color: #fff; border-color: var(--ink); }
     .day-tab-add { background: transparent; border: 1px dashed var(--muted); color: var(--muted); padding: 6px 12px; }
+    .day-date-row {
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 0 8px; padding: 0 40px; min-height: 30px;
+      box-sizing: border-box;
+    }
+    .day-date-cluster {
+      position: relative;
+      display: inline-block;
+      max-width: 100%;
+    }
+    .day-date-label {
+      text-align: center;
+      font-size: .92rem; font-weight: 700; color: var(--muted);
+      margin: 0; padding: 0;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: .02em;
+      min-height: 1.2em;
+      line-height: 30px;
+    }
+    .day-date-row .btn-icon-del {
+      position: absolute;
+      left: calc(100% + 8px);
+      top: 50%;
+      transform: translateY(-50%);
+      width: 30px; height: 30px;
+    }
+    .day-date-row .btn-icon-del:disabled {
+      opacity: .35;
+      pointer-events: none;
+    }
+    .day-date-label:empty { display: none; }
+    .day-date-cluster:has(.day-date-label:empty) {
+      width: 0;
+      min-height: 30px;
+    }
 
     /* Timeline cards */
     .timeline { display: flex; flex-direction: column; gap: 0; }
@@ -250,6 +493,34 @@
     .place-card:first-child { border-top-left-radius: 14px; border-top-right-radius: 14px; }
     .place-card:last-child { border-bottom-left-radius: 14px; border-bottom-right-radius: 14px; border-bottom: none; }
     .place-card.is-locked { opacity: .72; border-style: dashed; }
+    .place-card.is-passed {
+      background: #eef1f2;
+      filter: grayscale(1);
+      opacity: .7;
+    }
+    .place-card.is-passed .place-title,
+    .place-card.is-passed .place-meta,
+    .place-card.is-passed .place-time,
+    .place-card.is-passed .place-time .t-start,
+    .place-card.is-passed .place-time .t-end,
+    .place-card.is-passed .place-time .t-only,
+    .place-card.is-passed .place-time .t-chip {
+      color: #8b959b !important;
+    }
+    .place-card.is-passed .place-time,
+    .place-card.is-passed .place-time .t-start,
+    .place-card.is-passed .place-time .t-end {
+      background: #eef1f2;
+    }
+    .place-card.is-passed .place-time .t-track {
+      border-left-color: rgba(140,150,156,.4);
+    }
+    .place-card.is-passed .place-time .t-chip {
+      background: #e2e6e8;
+    }
+    .place-card.is-passed .place-head-main.has-cover::before {
+      background: linear-gradient(100deg, rgba(80,88,92,.88) 0%, rgba(80,88,92,.55) 55%, rgba(80,88,92,.35) 100%);
+    }
     .place-card .drag-handle {
       position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
       width: 28px; height: 36px; z-index: 3;
@@ -300,6 +571,10 @@
     }
     .place-time .t-only {
       margin: auto 0; font-size: 1.35rem; min-width: 5ch; text-align: center;
+    }
+    .place-time.is-unset .t-only {
+      font-size: .85rem; font-weight: 700; color: var(--muted);
+      min-width: 0;
     }
     .place-head-main {
       position: relative; min-width: 0; flex: 1;
@@ -402,18 +677,167 @@
     .sortable-chosen { box-shadow: 0 10px 28px rgba(22,48,56,.15); }
 
     .wishlist-box {
-      margin-top: 14px; padding: 12px; border-radius: 14px; border: 1px dashed var(--accent);
+      margin-top: 14px; padding: 14px; border-radius: 14px; border: 1px dashed var(--accent);
       background: rgba(13,122,122,.05);
     }
-    .wishlist-box h3 { margin: 0 0 8px; font-size: .9rem; color: var(--accent-deep); }
-    #wishlist { min-height: 52px; }
+    .wishlist-box-head {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 10px; margin-bottom: 14px;
+    }
+    .wishlist-box h3 { margin: 0; font-size: .9rem; color: var(--accent-deep); }
+    .wishlist-box > .hint {
+      margin: 14px 0 0;
+    }
+    #wishlist {
+      min-height: 52px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    #wishlist .place-card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 14px 14px 12px;
+      min-height: 0;
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(22,48,56,.04);
+    }
+    #wishlist .place-card:first-child,
+    #wishlist .place-card:last-child {
+      border-radius: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+    #wishlist .place-head-main {
+      padding: 4px 36px 4px 4px;
+      background: transparent;
+      border-radius: 0;
+    }
+    #wishlist .place-title {
+      margin: 0 0 8px;
+      font-size: 1.02rem;
+      line-height: 1.35;
+    }
+    #wishlist .place-meta.place-tags {
+      margin-top: 0;
+      margin-bottom: 2px;
+      gap: 8px;
+    }
+    #wishlist .place-note {
+      margin-top: 10px;
+      font-size: .82rem;
+      line-height: 1.55;
+      color: var(--ink);
+      opacity: .78;
+    }
+    #wishlist .place-meta.place-addr {
+      margin-top: 8px;
+      line-height: 1.45;
+    }
+    #wishlist .place-card .drag-handle {
+      right: 8px;
+    }
+    #wishlist .tag {
+      padding: 3px 9px;
+      font-size: .7rem;
+    }
 
     .fab {
       position: fixed; bottom: calc(var(--nav-h) + var(--safe-b) + 16px); right: 16px;
       width: 56px; height: 56px; border-radius: 50%; background: var(--accent); color: #fff;
       display: flex; align-items: center; justify-content: center; font-size: 1.8rem;
       box-shadow: 0 4px 12px rgba(13,122,122,0.3); z-index: 30;
+      line-height: 1; padding: 0; border: none;
     }
+    .fab-wrap {
+      position: fixed;
+      bottom: calc(var(--nav-h) + var(--safe-b) + 16px);
+      right: 16px;
+      width: 56px;
+      height: 56px;
+      z-index: 31;
+    }
+    .fab-wrap .fab {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      z-index: 2;
+      transition: transform .22s cubic-bezier(.2,.8,.2,1);
+    }
+    .fab-wrap.is-open .fab {
+      transform: rotate(45deg);
+    }
+    .fab-menu {
+      position: absolute;
+      right: 0;
+      bottom: calc(100% + 10px);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .fab-wrap.is-open .fab-menu { pointer-events: auto; }
+    .fab-menu-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      border: none;
+      background: transparent;
+      color: var(--ink);
+      cursor: pointer;
+      opacity: 0;
+      transform: translateY(14px) scale(.92);
+      transition:
+        opacity .2s ease,
+        transform .26s cubic-bezier(.2,.8,.2,1);
+      pointer-events: none;
+    }
+    .fab-wrap.is-open .fab-menu-btn {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+    .fab-wrap.is-open .fab-menu-btn:nth-child(1) { transition-delay: .05s; }
+    .fab-wrap.is-open .fab-menu-btn:nth-child(2) { transition-delay: .1s; }
+    .fab-menu-btn .fab-menu-label {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: .82rem;
+      font-weight: 700;
+      box-shadow: 0 4px 14px rgba(22,48,56,.12);
+      white-space: nowrap;
+    }
+    .fab-menu-btn .fab-menu-dot {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: #fff;
+      border: 1px solid var(--line);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.35rem; line-height: 1;
+      color: var(--ink);
+      box-shadow: 0 4px 12px rgba(22,48,56,.12);
+      flex-shrink: 0;
+    }
+    .fab-menu-btn .fab-menu-dot-nav svg {
+      width: 20px;
+      height: 20px;
+      display: block;
+    }
+    .fab-menu-scrim {
+      position: fixed; inset: 0;
+      background: transparent;
+      z-index: 1;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease;
+    }
+    .fab-wrap.is-open .fab-menu-scrim {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    #tabPlan.hidden .fab-wrap { display: none !important; }
 
     /* Map */
     /* TODO(map): 地圖功能停用中 */
@@ -447,6 +871,7 @@
     }
     .sheet-close svg { width: 20px; height: 20px; display: block; }
     .sheet-body { overflow-y: auto; padding: 16px 16px 24px; -webkit-overflow-scrolling: touch; flex: 1; }
+    .sheet-body.has-date-focus { padding-bottom: min(48vh, 360px); }
     .sheet-actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--line); }
     .sheet-actions > button { flex: 1; min-width: calc(33.333% - 8px); padding: 12px 8px; font-size: 0.9rem; margin: 0; }
     .sheet-actions > .btn-primary { min-width: 100%; }
@@ -632,8 +1057,189 @@
     .money-fx-link {
       display: block; width: 100%; margin-top: 14px; text-align: center;
     }
-    .check-item { display: flex; align-items: flex-start; gap: 10px; }
-    .check-item input { width: 20px; height: 20px; margin-top: 2px; }
+    .money-actions {
+      display: flex; flex-direction: column; gap: 8px;
+      margin-bottom: 10px;
+    }
+    .money-actions .btn-ghost { width: 100%; margin: 0; }
+    .personal-money {
+      margin-bottom: 12px; padding: 14px;
+      border-radius: 18px; border: 1px solid var(--line);
+      background: #fff; box-sizing: border-box;
+    }
+    .personal-money-head {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 8px; margin-bottom: 10px;
+    }
+    .personal-money-head h3 {
+      margin: 0; font-size: .95rem; font-weight: 800; color: var(--ink);
+    }
+    .personal-chart-btn {
+      width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: #eef3f5; color: var(--accent-deep);
+    }
+    .personal-chart-btn svg { width: 18px; height: 18px; }
+    .personal-money h3 {
+      margin: 0 0 10px; font-size: .95rem; font-weight: 800; color: var(--ink);
+    }
+    .personal-money-grid {
+      display: grid; grid-template-columns: 1fr; gap: 8px;
+    }
+    .personal-row {
+      display: flex; align-items: baseline; justify-content: space-between;
+      gap: 10px; padding: 10px 12px; border-radius: 12px;
+      background: #f6f9fa;
+    }
+    .personal-row.is-accent {
+      background: linear-gradient(145deg, #0d7a7a 0%, #095858 100%);
+      color: #fff;
+    }
+    .personal-row.is-ok { background: #eef8f4; }
+    .personal-row-label {
+      font-size: .78rem; font-weight: 700; color: var(--muted);
+      min-width: 0;
+    }
+    .personal-row.is-accent .personal-row-label,
+    .personal-row.is-accent .personal-row-value { color: #fff; }
+    .personal-row.is-ok .personal-row-label { color: #1f7a55; }
+    .personal-row-value {
+      font-family: var(--display); font-weight: 700; font-size: 1rem;
+      font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--ink);
+    }
+    .personal-hint {
+      margin: 8px 0 0; font-size: .72rem; color: var(--muted); font-weight: 600; line-height: 1.4;
+    }
+    .public-fund-card {
+      margin-bottom: 12px; padding: 12px 14px;
+      border-radius: 16px; border: 1px solid #e8d9b8;
+      background: linear-gradient(135deg, #fffaf0 0%, #fff6e6 100%);
+    }
+    .public-fund-card h3 {
+      margin: 0 0 6px; font-size: .88rem; font-weight: 800; color: #8a5a10;
+    }
+    .public-fund-row {
+      display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+      font-size: .82rem; font-weight: 700; color: var(--ink); margin-top: 4px;
+    }
+    .public-fund-row span { color: var(--muted); font-weight: 600; }
+    .cat-seg {
+      display: flex; flex-wrap: wrap; gap: 6px;
+    }
+    .cat-opt {
+      padding: 7px 10px; border-radius: 999px; font-size: .78rem; font-weight: 700;
+      background: #eef3f5; color: var(--muted); border: 1px solid transparent;
+    }
+    .cat-opt.is-active {
+      background: var(--accent-soft); color: var(--accent-deep); border-color: #b7d9d9;
+    }
+    .cat-opt.is-public.is-active {
+      background: #fff4e8; color: #a65d12; border-color: #f0d2a8;
+    }
+    .ex-chip.is-cat {
+      background: #eef3f5; color: var(--ink);
+    }
+    .ex-chip.is-public {
+      background: #fff4e8; color: #a65d12;
+    }
+    .pie-block { margin-bottom: 18px; }
+    .pie-block h4 {
+      margin: 0 0 8px; font-size: .88rem; font-weight: 800; color: var(--ink);
+    }
+    .pie-wrap {
+      display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    }
+    .pie-svg { width: 140px; height: 140px; flex-shrink: 0; }
+    .pie-legend { flex: 1; min-width: 140px; display: flex; flex-direction: column; gap: 6px; }
+    .pie-leg-row {
+      display: flex; align-items: center; gap: 8px;
+      font-size: .78rem; font-weight: 700; color: var(--ink);
+    }
+    .pie-dot {
+      width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+    }
+    .pie-leg-amt {
+      margin-left: auto; font-variant-numeric: tabular-nums; color: var(--muted);
+    }
+    .pie-empty {
+      color: var(--muted); font-size: .82rem; font-weight: 600; padding: 12px 0;
+    }
+    .ex-receipt-thumb {
+      width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+      background: #eef3f5 center/cover no-repeat; border: 1px solid var(--line);
+      cursor: zoom-in;
+    }
+    .ex-receipt-badge {
+      display: inline-flex; align-items: center; gap: 3px;
+      padding: 2px 7px; border-radius: 999px;
+      background: #fff4e8; color: #a65d12;
+      font-size: .68rem; font-weight: 700;
+    }
+    .receipt-field {
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .receipt-preview-wrap {
+      position: relative; width: 100%; max-width: 220px;
+      border-radius: 14px; overflow: hidden;
+      border: 1px dashed var(--line); background: #f6f9fa;
+      aspect-ratio: 3 / 4; display: none;
+    }
+    .receipt-preview-wrap.has-img { display: block; }
+    .receipt-preview-wrap img {
+      width: 100%; height: 100%; object-fit: cover; display: block; cursor: zoom-in;
+    }
+    .receipt-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .receipt-viewer {
+      position: fixed; inset: 0; z-index: 120;
+      background: rgba(10, 18, 22, .88);
+      display: flex; align-items: center; justify-content: center;
+      padding: 48px 16px 24px; box-sizing: border-box;
+      opacity: 0; pointer-events: none; transition: opacity .18s;
+    }
+    .receipt-viewer.is-open { opacity: 1; pointer-events: auto; }
+    .receipt-viewer img {
+      max-width: 100%; max-height: 100%; object-fit: contain;
+      border-radius: 10px; box-shadow: 0 12px 40px rgba(0,0,0,.35);
+    }
+    .receipt-viewer-close {
+      position: absolute; top: 12px; right: 12px;
+      width: 40px; height: 40px; border-radius: 50%;
+      background: rgba(255,255,255,.14); color: #fff;
+      font-size: 1.4rem; font-weight: 700; line-height: 1;
+    }
+    .check-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 12px; box-sizing: border-box; width: 100%;
+      overflow: hidden;
+    }
+    .check-item input { width: 20px; height: 20px; margin: 0; flex-shrink: 0; }
+    .check-item .check-body {
+      flex: 1; min-width: 0;
+      cursor: pointer;
+      border-radius: 8px;
+      padding: 2px 4px;
+      margin: -2px -4px;
+    }
+    .check-item .check-body:active { background: rgba(13,122,122,.06); }
+    .check-item .check-body strong {
+      display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .check-ready {
+      display: flex; align-items: center; flex-shrink: 0;
+      max-width: 96px; overflow: hidden; padding-left: 2px;
+    }
+    .check-ready .avatar {
+      width: 24px; height: 24px; font-size: .58rem;
+      margin-left: -7px; border-width: 1.5px;
+    }
+    .check-ready .avatar:first-child { margin-left: 0; }
+    .btn-icon-del {
+      width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      color: #c24545; background: #fff1f1; border: 1px solid #f0d0d0;
+      margin: 0;
+    }
+    .btn-icon-del svg { width: 16px; height: 16px; }
     .fab-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
     .seg {
       display: flex; gap: 4px; background: #eef3f5; padding: 4px; border-radius: 12px; margin-bottom: 10px;
@@ -672,7 +1278,10 @@
   <div id="travelCloudGate" aria-hidden="true">
     <div class="gate-panel" id="travelGatePanel">
       <div class="gate-loading"><div class="spinner"></div><span>處理中…</span></div>
-      <h1 class="gate-brand">旅跡</h1>
+      <div class="gate-brand-row">
+        <img class="gate-brand-logo" src="./icon-192.png" alt="" width="44" height="44" />
+        <h1 class="gate-brand">旅跡</h1>
+      </div>
       <p class="gate-sub" style="display:none;"></p>
       <div class="gate-tabs">
         <button type="button" class="is-active" id="travelTabLogin">登入</button>
@@ -710,48 +1319,78 @@
   <div class="app-root" id="appRoot">
     <!-- HOME -->
     <div id="viewHome">
-      <header class="topbar" style="display: block; padding-bottom: 12px;">
-        <h1 style="font-family: var(--display); font-size: 1.4rem; margin: 0 0 6px; color: var(--accent-deep);">旅跡</h1>
-        <div style="display: flex; align-items: center; justify-content: space-between;">
-          <div class="sub" id="homeSub" style="font-size: .88rem; color: var(--muted); font-weight: 600;">你好，<span id="travelUserName">—</span></div>
-          <button type="button" class="btn-ghost btn-sm" id="travelBtnLogout" style="padding: 4px 12px; min-height: 0; height: auto; margin: 0; font-size: .75rem;">登出</button>
+      <header class="home-hero">
+        <div class="home-hero-top">
+          <div class="home-brand-block">
+            <div class="home-brand-row">
+              <img class="home-brand-logo" src="./icon-192.png" alt="" width="52" height="52" />
+              <h1 class="home-brand">旅跡</h1>
+            </div>
+            <div class="home-hello" id="homeHello">
+              <span class="avatar home-avatar is-me" id="homeAvatar" aria-hidden="true">?</span>
+              <div class="home-hello-text" id="homeHelloText">
+                <span class="home-hello-label" id="homeHelloLabel">你好</span>
+                <strong id="travelUserName">—</strong>
+              </div>
+            </div>
+          </div>
+          <button type="button" class="btn-ghost btn-sm home-logout" id="travelBtnLogout">登出</button>
         </div>
       </header>
       <div class="main">
-        <section class="panel" id="homePanel">
+        <div id="homeUserArea">
           <div class="seg home-tabs" id="homeTabs">
             <button type="button" class="is-active" data-home-tab="mine">我的行程</button>
             <button type="button" data-home-tab="join">加入行程</button>
           </div>
 
           <div id="homePaneMine">
-            <div class="row" style="margin-bottom:10px;">
+            <section class="panel home-create-panel" id="homeCreatePanel">
+              <h2 class="home-panel-title">建立新行程</h2>
               <div class="field"><label>行程名稱</label><input id="newTripTitle" maxlength="80" placeholder="沖繩五日遊" /></div>
-              <button type="button" class="btn-primary" style="width:auto;margin:0;" id="btnCreateTrip">新增</button>
-            </div>
-            <p class="hint">新增後會產生行程碼，分享給同伴即可共同編輯。</p>
-            <div class="money-sec" style="margin-top:4px;">
-              <h3>我建立的</h3>
-              <span id="mineTripCount"></span>
-            </div>
-            <div id="tripListMine"></div>
-            <p class="empty hidden" id="tripListMineEmpty">尚無自己建立的行程</p>
+              <div class="field"><label>出發日</label><input id="newTripStart" type="date" /></div>
+              <div class="field"><label>回程日</label><input id="newTripEnd" type="date" /></div>
+              <p class="hint" id="newTripDateHint">可先填旅程日期，會自動建立對應的 Day。</p>
+              <button type="button" class="btn-primary" id="btnCreateTrip">新增行程</button>
+              <p class="hint" style="margin-top:10px;margin-bottom:0;">新增後會產生行程碼，分享給同伴即可共同編輯。</p>
+            </section>
+            <section class="panel home-list-panel">
+              <div class="money-sec">
+                <h3>我建立的</h3>
+                <span id="mineTripCount"></span>
+              </div>
+              <div id="tripListMine"></div>
+              <div class="home-empty" id="tripListMineEmpty">
+                <div class="home-empty-mark" aria-hidden="true">日</div>
+                <p>還沒有自己建立的行程</p>
+                <span>填好上方名稱與日期後，按「新增行程」就會出現在這裡。</span>
+              </div>
+            </section>
           </div>
 
           <div id="homePaneJoin" class="hidden">
-            <div class="row" style="margin-bottom:10px;">
-              <div class="field"><label>行程碼</label><input id="joinTripCode" maxlength="12" placeholder="A3K9XP2Q" spellcheck="false" /></div>
-              <button type="button" class="btn-primary" style="width:auto;margin:0;" id="btnJoinTrip">加入</button>
-            </div>
-            <p class="hint">輸入同伴分享的行程碼加入共同編輯。</p>
-            <div class="money-sec" style="margin-top:4px;">
-              <h3>已加入</h3>
-              <span id="joinTripCount"></span>
-            </div>
-            <div id="tripListJoin"></div>
-            <p class="empty hidden" id="tripListJoinEmpty">尚未加入其他行程</p>
+            <section class="panel home-create-panel">
+              <h2 class="home-panel-title">加入行程</h2>
+              <div class="row" style="margin-bottom:10px;">
+                <div class="field"><label>行程碼</label><input id="joinTripCode" maxlength="12" placeholder="A3K9XP2Q" spellcheck="false" /></div>
+                <button type="button" class="btn-primary" style="width:auto;margin:0;" id="btnJoinTrip">加入</button>
+              </div>
+              <p class="hint" style="margin-bottom:0;">輸入同伴分享的行程碼加入共同編輯。</p>
+            </section>
+            <section class="panel home-list-panel">
+              <div class="money-sec">
+                <h3>已加入</h3>
+                <span id="joinTripCount"></span>
+              </div>
+              <div id="tripListJoin"></div>
+              <div class="home-empty" id="tripListJoinEmpty">
+                <div class="home-empty-mark" aria-hidden="true">碼</div>
+                <p>尚未加入其他行程</p>
+                <span>請同伴分享行程碼，輸入後就能一起編輯。</span>
+              </div>
+            </section>
           </div>
-        </section>
+        </div>
         <section class="panel hidden" id="adminPanel">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
             <h2 style="margin:0;">管理員 · 全部行程</h2>
@@ -782,17 +1421,42 @@
         <!-- Plan -->
         <section id="tabPlan">
           <div class="day-tabs" id="dayTabs"></div>
+          <div class="day-date-row">
+            <div class="day-date-cluster">
+              <div class="day-date-label" id="dayDateLabel"></div>
+              <button type="button" class="btn-icon-del" id="btnDelDay" title="刪除目前這一天" aria-label="刪除這天">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              </button>
+            </div>
+          </div>
           <div style="background:#fff; border:1px solid var(--line); border-radius:14px; box-shadow:0 4px 12px rgba(0,0,0,0.02);">
             <div class="timeline" id="timeline"></div>
           </div>
-          <button type="button" class="fab" id="btnAddPlace">+</button>
+          <div class="fab-wrap" id="fabPlanWrap">
+            <div class="fab-menu-scrim" id="fabPlanScrim" aria-hidden="true"></div>
+            <div class="fab-menu" id="fabPlanMenu" role="menu" aria-label="新增選單">
+              <button type="button" class="fab-menu-btn" id="choiceAddWish" role="menuitem">
+                <span class="fab-menu-label">想去清單</span>
+                <span class="fab-menu-dot" aria-hidden="true">♡</span>
+              </button>
+              <button type="button" class="fab-menu-btn" id="choiceAddPlace" role="menuitem">
+                <span class="fab-menu-label">加入行程</span>
+                <span class="fab-menu-dot fab-menu-dot-nav" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 17L17 7"/>
+                    <path d="M9 7h8v8"/>
+                  </svg>
+                </span>
+              </button>
+            </div>
+            <button type="button" class="fab" id="btnAddPlace" title="新增" aria-label="新增" aria-haspopup="menu" aria-expanded="false">+</button>
+          </div>
           <div class="wishlist-box">
-            <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div class="wishlist-box-head">
               <h3>想去清單 · Wishlist</h3>
-              <button type="button" class="btn-ghost btn-sm" id="btnAddWish">＋ 加入</button>
             </div>
             <div id="wishlist"></div>
-            <p class="hint">長按拖曳到上方日程，或點開後「排入今日」。</p>
+            <p class="hint">長按拖曳到上方日程，或點開後「排入此日」。</p>
           </div>
         </section>
 
@@ -801,19 +1465,32 @@
         <!-- Money -->
         <section id="tabMoney" class="hidden">
           <div class="money-summary" id="moneySummary"></div>
-          <button type="button" class="btn-primary" id="btnAddExpense">＋ 記一筆</button>
-          <div class="money-sec">
-            <h3>支出紀錄</h3>
-            <span id="expenseCountLabel"></span>
+          <div class="money-actions">
+            <button type="button" class="btn-ghost btn-sm" id="btnSetPublicFund">加入公費</button>
           </div>
-          <div id="expenseList"></div>
-          <div class="settle-panel">
-            <div class="settle-panel-head">
-              <h2>智慧算帳</h2>
-              <span class="settle-badge" id="settleBadge">Settle up</span>
+          <div class="public-fund-card" id="publicFundCard"></div>
+          <div class="seg" id="moneySeg">
+            <button type="button" class="is-active" data-money="list">支出紀錄</button>
+            <button type="button" data-money="settle">智慧算帳</button>
+          </div>
+          <div id="moneyPaneList">
+            <div class="money-sec" style="margin-top:0;">
+              <h3>支出紀錄</h3>
+              <span id="expenseCountLabel"></span>
             </div>
-            <div id="settleList"></div>
+            <div id="expenseList"></div>
           </div>
+          <div id="moneyPaneSettle" class="hidden">
+            <div class="personal-money" id="personalMoney"></div>
+            <div class="settle-panel">
+              <div class="settle-panel-head">
+                <h2>智慧算帳</h2>
+                <span class="settle-badge" id="settleBadge">Settle up</span>
+              </div>
+              <div id="settleList"></div>
+            </div>
+          </div>
+          <button type="button" class="fab" id="btnAddExpense" title="記一筆" aria-label="記一筆">+</button>
           <button type="button" class="btn-ghost btn-sm money-fx-link" id="btnOpenFx">設定匯率</button>
         </section>
 
@@ -825,20 +1502,18 @@
             <button type="button" data-prep="docs">文件</button>
           </div>
           <div id="prepLuggage">
-            <button type="button" class="btn-ghost btn-sm" id="btnAddLuggage">＋ 行李項目</button>
-            <div id="luggageList" style="margin-top:10px;"></div>
+            <div id="luggageList"></div>
+            <button type="button" class="fab" id="btnAddLuggage" title="新增行李" aria-label="新增行李">+</button>
           </div>
           <div id="prepTasks" class="hidden">
-            <button type="button" class="btn-ghost btn-sm" id="btnAddTask">＋ 待辦</button>
-            <div id="taskList" style="margin-top:10px;"></div>
+            <div id="taskList"></div>
+            <button type="button" class="fab" id="btnAddTask" title="新增待辦" aria-label="新增待辦">+</button>
           </div>
           <div id="prepDocs" class="hidden">
-            <label class="btn-primary" style="display:block;text-align:center;margin:0;">
-              上傳文件
-              <input type="file" id="docFileInput" class="sr-only" accept="image/*,application/pdf" />
-            </label>
             <p class="hint">檔案存於本機離線庫，並同步檔名到行程；圖片／PDF 可離線開啟。</p>
-            <div id="docList" style="margin-top:10px;"></div>
+            <div id="docList"></div>
+            <input type="file" id="docFileInput" class="sr-only" accept="image/*,application/pdf" />
+            <button type="button" class="fab" id="btnAddDoc" title="上傳文件" aria-label="上傳文件">+</button>
           </div>
         </section>
 
@@ -851,13 +1526,22 @@
                 <span>›</span>
               </button>
               <button type="button" class="more-link" id="btnMoreTripSettings">
-                <div><strong>行程設定</strong><span>行程名稱與備註</span></div>
+                <div><strong>行程設定</strong><span>名稱、備註、旅程日期</span></div>
                 <span>›</span>
               </button>
               <button type="button" class="more-link" id="btnMoreHistory">
-                <div><strong>修改歷史</strong><span>查看詳細異動紀錄</span></div>
+                <div><strong>修改歷史</strong><span>點選紀錄可還原到該狀態</span></div>
                 <span>›</span>
               </button>
+              <button type="button" class="more-link" id="btnMoreExport">
+                <div><strong>匯出行程</strong><span>行程與準備清單</span></div>
+                <span>›</span>
+              </button>
+              <button type="button" class="more-link" id="btnMoreImport">
+                <div><strong>匯入行程</strong><span>用 JSON 覆蓋目前行程與準備</span></div>
+                <span>›</span>
+              </button>
+              <input type="file" id="importTripFile" accept="application/json,.json" hidden />
             </div>
           </div>
           <div class="panel">
@@ -891,6 +1575,10 @@
     })();
   </script>
 
+  <div class="receipt-viewer" id="receiptViewer" aria-hidden="true">
+    <button type="button" class="receipt-viewer-close" id="receiptViewerClose" aria-label="關閉">×</button>
+    <img id="receiptViewerImg" alt="收據" />
+  </div>
   <div class="sheet-backdrop" id="sheetBackdrop"></div>
   <div class="sheet" id="sheet">
     <div class="sheet-handle"></div>
@@ -1266,6 +1954,7 @@
       const stripCover = (it) => { if (it) delete it.coverImage; };
       (slim.content?.days || []).forEach((d) => (d.items || []).forEach(stripCover));
       (slim.content?.wishlist || []).forEach(stripCover);
+      (slim.content?.expenses || []).forEach((ex) => { if (ex) delete ex.receiptImage; });
       return slim;
     }
 
@@ -1390,7 +2079,7 @@
       const base = {
         id: uid(), time: "", endTime: "", place: "", note: "", durationMin: 0, cost: 0, currency: "TWD",
         address: "", hours: "", ticketPrice: "", ticketStatus: "none",
-        links: [], tags: ["sight"], coverImage: "",
+        links: [], tags: ["sight"], coverImage: "", passed: false,
       };
       const item = Object.assign(base, partial || {});
       if (!item.endTime && item.time && item.durationMin) {
@@ -1400,29 +2089,48 @@
       return item;
     }
 
-    function emptyTripPayload(title, code, creator) {
+    function emptyTripPayload(title, code, creator, opts) {
       const now = new Date().toISOString();
+      const tripStart = String((opts && opts.tripStart) || "").trim();
+      const tripEnd = String((opts && opts.tripEnd) || "").trim();
+      const dayCount = (tripStart && tripEnd) ? daysBetweenInclusive(tripStart, tripEnd) : 1;
+      const days = [];
+      for (let i = 0; i < Math.max(1, dayCount); i++) {
+        days.push({
+          id: uid(),
+          label: "Day " + (i + 1),
+          items: i === 0 ? [emptyItem({ time: "09:00", endTime: "10:00", place: "第一站" })] : [],
+        });
+      }
       return {
         code, title: title || "未命名行程", createdBy: creator, createdAt: now,
         updatedAt: now, updatedBy: creator,
         members: { [creator]: true },
         content: {
           notes: "",
+          tripStart,
+          tripEnd,
           fx: { ...DEFAULT_FX },
-          days: [{ id: uid(), label: "Day 1", items: [emptyItem({ time: "09:00", endTime: "10:00", place: "第一站" })] }],
+          days,
           wishlist: [],
           expenses: [],
+          publicFund: { amount: 0, currency: "TWD", amountTwd: 0 },
           checklists: {
             luggage: [
-              { id: uid(), text: "護照", done: false },
-              { id: uid(), text: "網卡／eSIM", done: false },
-              { id: uid(), text: "變壓器", done: false },
+              { id: uid(), text: "護照", done: false, doneBy: [] },
+              { id: uid(), text: "網卡／eSIM", done: false, doneBy: [] },
+              { id: uid(), text: "變壓器", done: false, doneBy: [] },
             ],
             tasks: [],
           },
           documents: [],
         },
-        history: [{ at: now, user: creator, action: "建立行程", detail: title || "未命名行程" }],
+        history: [{
+          at: now,
+          user: creator,
+          action: "建立行程",
+          detail: (title || "未命名行程") + (tripStart && tripEnd ? ` · ${tripStart}～${tripEnd}` : ""),
+        }],
       };
     }
 
@@ -1433,12 +2141,241 @@
       if (!Array.isArray(c.days)) c.days = [];
       if (!Array.isArray(c.wishlist)) c.wishlist = [];
       if (!Array.isArray(c.expenses)) c.expenses = [];
+      if (!c.publicFund || typeof c.publicFund !== "object") {
+        c.publicFund = { amount: 0, currency: "TWD", amountTwd: 0 };
+      } else {
+        c.publicFund.amount = Number(c.publicFund.amount) || 0;
+        c.publicFund.currency = c.publicFund.currency || "TWD";
+        if (c.publicFund.amountTwd == null) c.publicFund.amountTwd = Number(c.publicFund.amount) || 0;
+        else c.publicFund.amountTwd = Number(c.publicFund.amountTwd) || 0;
+      }
       if (!c.fx) c.fx = { ...DEFAULT_FX };
+      if (typeof c.tripStart !== "string") c.tripStart = "";
+      if (typeof c.tripEnd !== "string") c.tripEnd = "";
       if (!c.checklists) c.checklists = { luggage: [], tasks: [] };
       if (!Array.isArray(c.checklists.luggage)) c.checklists.luggage = [];
       if (!Array.isArray(c.checklists.tasks)) c.checklists.tasks = [];
       if (!Array.isArray(c.documents)) c.documents = [];
-      c.days.forEach((d) => { if (!Array.isArray(d.items)) d.items = []; });
+      c.days.forEach((d) => {
+        if (!Array.isArray(d.items)) d.items = [];
+      });
+    }
+
+    function deepClone(v) {
+      return JSON.parse(JSON.stringify(v));
+    }
+
+    function scrubMemberFieldsFromContent(content) {
+      const c = content && typeof content === "object" ? content : {};
+      if (!c.checklists || typeof c.checklists !== "object") c.checklists = { luggage: [], tasks: [] };
+      c.checklists.luggage = (Array.isArray(c.checklists.luggage) ? c.checklists.luggage : []).map((it) => ({
+        id: (it && it.id) || uid(),
+        text: (it && it.text) || "",
+        done: false,
+        doneBy: [],
+      }));
+      c.checklists.tasks = (Array.isArray(c.checklists.tasks) ? c.checklists.tasks : []).map((it) => ({
+        id: (it && it.id) || uid(),
+        text: (it && it.text) || "",
+        assignee: "",
+        done: false,
+      }));
+      return c;
+    }
+
+    function stripAccountingFromContent(content) {
+      const c = content && typeof content === "object" ? content : {};
+      c.expenses = [];
+      c.publicFund = { amount: 0, currency: "TWD", amountTwd: 0 };
+      c.fx = { ...DEFAULT_FX };
+      return c;
+    }
+
+    function buildHistorySnapshot(title, content) {
+      // 快照去掉大圖，避免歷史把 RTDB 撐爆
+      const c = deepClone(content || {});
+      (c.days || []).forEach((d) => {
+        (d.items || []).forEach((it) => { if (it) delete it.coverImage; });
+      });
+      (c.wishlist || []).forEach((it) => { if (it) delete it.coverImage; });
+      (c.expenses || []).forEach((ex) => { if (ex) delete ex.receiptImage; });
+      return {
+        title: title || "未命名行程",
+        content: c,
+      };
+    }
+
+    function buildTripExportPayload() {
+      if (!tripState) return null;
+      ensureContent();
+      const c = scrubMemberFieldsFromContent(stripAccountingFromContent(deepClone(tripState.content)));
+      return {
+        format: "travel-trip-export",
+        version: 2,
+        exportedAt: new Date().toISOString(),
+        title: tripState.title || "未命名行程",
+        content: {
+          notes: c.notes || "",
+          tripStart: c.tripStart || "",
+          tripEnd: c.tripEnd || "",
+          fx: { ...DEFAULT_FX },
+          days: deepClone(c.days || []),
+          wishlist: deepClone(c.wishlist || []),
+          expenses: [],
+          publicFund: { amount: 0, currency: "TWD", amountTwd: 0 },
+          checklists: {
+            luggage: deepClone((c.checklists && c.checklists.luggage) || []),
+            tasks: deepClone((c.checklists && c.checklists.tasks) || []),
+          },
+          documents: [],
+        },
+      };
+    }
+
+    function exportTripJson() {
+      if (!tripState) return;
+      const payload = buildTripExportPayload();
+      if (!payload) return;
+      const nameSafe = String(payload.title || "trip")
+        .replace(/[\\/:*?"<>|]/g, "_")
+        .trim()
+        .slice(0, 40) || "trip";
+      const stamp = (payload.exportedAt || "").slice(0, 10) || "export";
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${nameSafe}-${stamp}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      showToast("已匯出 JSON");
+    }
+
+    function normalizeImportedContent(raw, opts) {
+      const keepMoney = !!(opts && opts.keepMoney);
+      const moneyKeep = keepMoney && tripState && tripState.content
+        ? {
+            expenses: deepClone(tripState.content.expenses || []),
+            publicFund: deepClone(tripState.content.publicFund || { amount: 0, currency: "TWD", amountTwd: 0 }),
+            fx: deepClone(tripState.content.fx || DEFAULT_FX),
+          }
+        : null;
+      let c = (raw && typeof raw === "object") ? deepClone(raw) : {};
+      if (!Array.isArray(c.days) || !c.days.length) {
+        c.days = [{ id: uid(), label: "Day 1", items: [] }];
+      }
+      c.days = c.days.map((d, i) => ({
+        id: (d && d.id) || uid(),
+        label: (d && d.label) || ("Day " + (i + 1)),
+        items: Array.isArray(d && d.items) ? d.items : [],
+      }));
+      if (!Array.isArray(c.wishlist)) c.wishlist = [];
+      if (typeof c.notes !== "string") c.notes = c.notes == null ? "" : String(c.notes);
+      if (typeof c.tripStart !== "string") c.tripStart = "";
+      if (typeof c.tripEnd !== "string") c.tripEnd = "";
+      if (!c.checklists || typeof c.checklists !== "object") c.checklists = { luggage: [], tasks: [] };
+      if (!Array.isArray(c.checklists.luggage)) c.checklists.luggage = [];
+      if (!Array.isArray(c.checklists.tasks)) c.checklists.tasks = [];
+      c = scrubMemberFieldsFromContent(c);
+      c.documents = [];
+      if (moneyKeep) {
+        c.expenses = moneyKeep.expenses;
+        c.publicFund = moneyKeep.publicFund;
+        c.fx = moneyKeep.fx;
+      } else {
+        c = stripAccountingFromContent(c);
+      }
+      return c;
+    }
+
+    function applyTripImport(data) {
+      if (!tripState || applyingRemote) return false;
+      if (!data || typeof data !== "object") throw new Error("檔案格式不正確");
+      const isPack = data.format === "travel-trip-export" || data.version === 1 || data.version === 2;
+      const title = typeof data.title === "string" ? data.title.trim() : "";
+      const contentSrc = data.content && typeof data.content === "object"
+        ? data.content
+        : (isPack ? null : data);
+      if (!contentSrc || typeof contentSrc !== "object") {
+        throw new Error("找不到行程內容，請確認是本 App 匯出的 JSON");
+      }
+      if (!Array.isArray(contentSrc.days) && !Array.isArray(contentSrc.wishlist)) {
+        if (!(contentSrc.checklists && typeof contentSrc.checklists === "object")) {
+          throw new Error("JSON 內容不完整");
+        }
+      }
+
+      tripState.title = title || tripState.title || "未命名行程";
+      // 匯入只覆蓋行程／準備，保留目前記帳
+      tripState.content = normalizeImportedContent(contentSrc, { keepMoney: true });
+      ensureContent();
+      activeDayIdx = 0;
+      draftPlace = null;
+      closeAddPlanMenu();
+      $("tripTitleHead").textContent = tripState.title;
+      schedulePush({
+        action: "匯入行程",
+        detail: tripState.title + (tripState.content.tripStart && tripState.content.tripEnd
+          ? ` · ${tripState.content.tripStart}～${tripState.content.tripEnd}`
+          : ""),
+      });
+      renderTripUI();
+      return true;
+    }
+
+    async function importTripJsonFile(file) {
+      if (!file || !tripState) return;
+      const text = await file.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error("無法解析 JSON 檔案");
+      }
+      if (data && typeof data === "object") {
+        delete data.code;
+        delete data.members;
+        delete data.history;
+        delete data.createdBy;
+        delete data.updatedBy;
+        if (data.content && typeof data.content === "object") {
+          delete data.content.code;
+          delete data.content.members;
+        }
+      }
+      applyTripImport(data);
+      showToast("匯入完成");
+    }
+
+    function restoreFromHistoryEntry(entry) {
+      if (!tripState || applyingRemote) return;
+      if (!entry || !entry.snapshot || !entry.snapshot.content) {
+        alert("此筆紀錄沒有可還原的快照（較早的紀錄無法還原）。");
+        return;
+      }
+      const when = entry.at ? new Date(entry.at).toLocaleString("zh-TW") : "";
+      const label = (entry.action || "該次修改") + (entry.detail ? " — " + entry.detail : "");
+      if (!confirm(
+        `確定還原到這次修改後的狀態？\n\n${label}\n${when ? when + "\n" : ""}\n` +
+        `還原會覆蓋目前的行程內容，且無法自動復原。`
+      )) return;
+
+      tripState.title = entry.snapshot.title || tripState.title || "未命名行程";
+      tripState.content = deepClone(entry.snapshot.content);
+      ensureContent();
+      activeDayIdx = 0;
+      draftPlace = null;
+      closeAddPlanMenu();
+      $("tripTitleHead").textContent = tripState.title;
+      schedulePush({
+        action: "還原歷史",
+        detail: (entry.action || "紀錄") + (when ? " · " + when : ""),
+      });
+      closeSheet();
+      renderTripUI();
+      showToast("已還原");
     }
 
     function cancelPush() { if (pushTimer) { clearTimeout(pushTimer); pushTimer = null; } }
@@ -1472,7 +2409,13 @@
       payload.members[accountName] = true;
       if (historyEntry) {
         const hist = Array.isArray(payload.history) ? payload.history.slice() : [];
-        hist.unshift({ at: now, user: accountName, action: historyEntry.action, detail: historyEntry.detail || "" });
+        hist.unshift({
+          at: now,
+          user: accountName,
+          action: historyEntry.action,
+          detail: historyEntry.detail || "",
+          snapshot: buildHistorySnapshot(payload.title, payload.content),
+        });
         payload.history = hist.slice(0, HISTORY_MAX);
       }
       // 複製後、送出前又有新編輯 → 不要送舊快照
@@ -1659,8 +2602,8 @@
       if (daySortable) { try { daySortable.destroy(); } catch {} daySortable = null; }
       if (wishSortable) { try { wishSortable.destroy(); } catch {} wishSortable = null; }
       const clearIds = [
-        "timeline", "wishlist", "dayTabs", "presenceRow",
-        "expenseList", "settleList", "moneySummary",
+        "timeline", "wishlist", "dayTabs", "dayDateLabel", "presenceRow",
+        "expenseList", "settleList", "moneySummary", "personalMoney", "publicFundCard",
         "luggageList", "taskList", "docList",
         "historyList", "memberList",
       ];
@@ -1695,6 +2638,7 @@
         $("homePanel").classList.remove("hidden");
         refreshTripList();
       }
+      scrollActiveViewToTop();
     }
 
     function showEditor(code, opts) {
@@ -1721,6 +2665,7 @@
         setSyncBadge("saving", "載入中…");
         attachTripListener(c);
       }
+      scrollActiveViewToTop();
     }
 
     function openLastTripFast() {
@@ -1732,8 +2677,23 @@
       return true;
     }
 
+    function scrollActiveViewToTop() {
+      const tripMain = $("tripMain");
+      if (tripMain) tripMain.scrollTop = 0;
+      const homeMain = document.querySelector("#viewHome .main");
+      if (homeMain) homeMain.scrollTop = 0;
+      // 保險：若外層也有捲動
+      try {
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      } catch {}
+    }
+
     function switchTab(tab) {
+      const changed = tab !== activeTab;
       activeTab = tab;
+      closeAddPlanMenu();
       ["plan", "money", "prep", "more"].forEach((t) => {
         const el = $("tab" + t[0].toUpperCase() + t.slice(1));
         if (el) el.classList.toggle("hidden", t !== tab);
@@ -1745,6 +2705,7 @@
       if (tab === "money") renderMoney();
       if (tab === "prep") renderPrep();
       if (tab === "more") { renderMembers(); }
+      if (changed) scrollActiveViewToTop();
     }
 
     /* ===== Sheets ===== */
@@ -1763,6 +2724,7 @@
     function closeSheet() {
       $("sheetBackdrop").classList.remove("is-open");
       $("sheet").classList.remove("is-open");
+      $("sheetBody")?.classList.remove("has-date-focus");
       sheetMode = null;
       releaseMyLock();
       // 未儲存的新增草稿直接丟棄，不寫入行程
@@ -1813,31 +2775,226 @@
       if (activeTab === "more") renderMembers();
     }
 
+    function formatDayDateShort(iso) {
+      const s = String(iso || "").trim();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return "";
+      const [, m, d] = s.split("-");
+      return `${Number(m)}/${Number(d)}`;
+    }
+    function formatDayDateLabel(iso) {
+      const s = String(iso || "").trim();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return "";
+      const [y, m, d] = s.split("-");
+      return `${Number(y)}年${Number(m)}月${Number(d)}日`;
+    }
+    function addDaysToIso(iso, days) {
+      const s = String(iso || "").trim();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return "";
+      const dt = new Date(s + "T12:00:00");
+      if (Number.isNaN(dt.getTime())) return "";
+      dt.setDate(dt.getDate() + (Number(days) || 0));
+      const y = dt.getFullYear();
+      const m = String(dt.getMonth() + 1).padStart(2, "0");
+      const d = String(dt.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+    function daysBetweenInclusive(startIso, endIso) {
+      const a = String(startIso || "").trim();
+      const b = String(endIso || "").trim();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(a) || !/^\d{4}-\d{2}-\d{2}$/.test(b)) return 0;
+      const da = new Date(a + "T12:00:00");
+      const db = new Date(b + "T12:00:00");
+      if (Number.isNaN(da.getTime()) || Number.isNaN(db.getTime())) return 0;
+      const diff = Math.round((db - da) / 86400000);
+      return diff >= 0 ? diff + 1 : 0;
+    }
+    function getTripStart() {
+      ensureContent();
+      return String(tripState.content.tripStart || "").trim();
+    }
+    function getDayDateIso(dayIdx) {
+      const start = getTripStart();
+      if (!start) return "";
+      const end = String(tripState.content.tripEnd || "").trim();
+      const iso = addDaysToIso(start, dayIdx);
+      if (!iso) return "";
+      if (end && iso > end) return "";
+      return iso;
+    }
+    function tripRangeDayCount() {
+      ensureContent();
+      const start = String(tripState.content.tripStart || "").trim();
+      const end = String(tripState.content.tripEnd || "").trim();
+      if (!start || !end) return 0;
+      return daysBetweenInclusive(start, end);
+    }
+    function dayHasPlaces(day) {
+      return !!(day && Array.isArray(day.items) && day.items.length);
+    }
+    /** @returns {{ ok: boolean, trimmed: number, moved: number, blocked?: boolean }} */
+    function syncDaysToTripRange(opts) {
+      ensureContent();
+      const start = String(tripState.content.tripStart || "").trim();
+      const end = String(tripState.content.tripEnd || "").trim();
+      if (!start || !end) return { ok: true, trimmed: 0, moved: 0 };
+      const need = daysBetweenInclusive(start, end);
+      if (need < 1) return { ok: true, trimmed: 0, moved: 0 };
+      while (tripState.content.days.length < need) {
+        const n = tripState.content.days.length + 1;
+        tripState.content.days.push({ id: uid(), label: "Day " + n, items: [] });
+      }
+      if (tripState.content.days.length <= need) return { ok: true, trimmed: 0, moved: 0 };
+
+      const extra = tripState.content.days.slice(need);
+      const hasContent = extra.some(dayHasPlaces);
+      const allowTrim = !!(opts && opts.trimExtra);
+      const forceTrim = !!(opts && opts.forceTrimExtra);
+      if (hasContent && !forceTrim) {
+        return { ok: false, trimmed: 0, moved: 0, blocked: true };
+      }
+      if (!allowTrim && !forceTrim) return { ok: true, trimmed: 0, moved: 0 };
+
+      let moved = 0;
+      if (forceTrim && hasContent) {
+        ensureContent();
+        if (!Array.isArray(tripState.content.wishlist)) tripState.content.wishlist = [];
+        extra.forEach((d) => {
+          (d.items || []).forEach((it) => {
+            tripState.content.wishlist.push(it);
+            moved += 1;
+          });
+        });
+      }
+      const trimmed = tripState.content.days.length - need;
+      tripState.content.days = tripState.content.days.slice(0, need);
+      tripState.content.days.forEach((d, i) => {
+        if (!d.label || /^Day\s*\d+$/i.test(String(d.label).trim())) {
+          d.label = "Day " + (i + 1);
+        }
+      });
+      return { ok: true, trimmed, moved };
+    }
+
+    function renderDayDateLabel() {
+      const el = $("dayDateLabel");
+      if (!el) return;
+      ensureContent();
+      el.textContent = formatDayDateLabel(getDayDateIso(activeDayIdx));
+      const delBtn = $("btnDelDay");
+      if (delBtn) {
+        const canDelete = (tripState.content.days || []).length > 1;
+        delBtn.disabled = !canDelete;
+        delBtn.title = canDelete ? "刪除目前這一天" : "至少保留一天";
+      }
+    }
+
+    function renumberDayLabels() {
+      ensureContent();
+      (tripState.content.days || []).forEach((d, i) => {
+        if (!d.label || /^Day\s*\d+$/i.test(String(d.label).trim())) {
+          d.label = "Day " + (i + 1);
+        }
+      });
+    }
+
+    function removeActiveDay() {
+      ensureContent();
+      const days = tripState.content.days || [];
+      if (days.length <= 1) {
+        alert("至少要保留一天");
+        return;
+      }
+      const idx = activeDayIdx;
+      const day = days[idx];
+      if (!day) return;
+      const label = day.label || ("Day " + (idx + 1));
+      const itemCount = (day.items || []).length;
+      let msg = `確定刪除「${label}」？`;
+      if (itemCount) {
+        msg += `\n這天有 ${itemCount} 個景點，會移到「想去清單」。`;
+      }
+      const start = String(tripState.content.tripStart || "").trim();
+      const end = String(tripState.content.tripEnd || "").trim();
+      if (start && end) {
+        msg += `\n有設定旅程日期時，回程日會縮短一天以對齊剩餘天數。`;
+      }
+      if (!confirm(msg)) return;
+
+      if (itemCount) {
+        if (!Array.isArray(tripState.content.wishlist)) tripState.content.wishlist = [];
+        (day.items || []).forEach((it) => tripState.content.wishlist.push(it));
+      }
+      tripState.content.days.splice(idx, 1);
+      renumberDayLabels();
+
+      if (start && end) {
+        const newEnd = addDaysToIso(start, tripState.content.days.length - 1);
+        if (newEnd) tripState.content.tripEnd = newEnd;
+      }
+
+      if (activeDayIdx >= tripState.content.days.length) {
+        activeDayIdx = tripState.content.days.length - 1;
+      }
+      schedulePush({
+        action: "刪除一天",
+        detail: label + (itemCount ? ` · ${itemCount} 景點移入想去` : "") +
+          (start && end ? ` · 回程 ${tripState.content.tripEnd}` : ""),
+      });
+      renderDayTabs();
+      renderTimeline();
+      renderWishlist();
+      showToast("已刪除 " + label);
+    }
+
     function renderDayTabs() {
       ensureContent();
       const tabs = $("dayTabs");
       tabs.innerHTML = "";
+      const rangeCount = tripRangeDayCount();
       tripState.content.days.forEach((d, i) => {
         const b = document.createElement("button");
         b.type = "button";
         b.className = "day-tab" + (i === activeDayIdx ? " is-active" : "");
         b.textContent = d.label || ("Day " + (i + 1));
-        b.addEventListener("click", () => { activeDayIdx = i; renderDayTabs(); renderTimeline(); });
+        b.addEventListener("click", () => {
+          activeDayIdx = i;
+          renderDayTabs();
+          renderTimeline();
+        });
         tabs.appendChild(b);
       });
       const addBtn = document.createElement("button");
       addBtn.type = "button";
       addBtn.className = "day-tab day-tab-add";
       addBtn.textContent = "+ 新增";
+      addBtn.title = rangeCount
+        ? "新增一天（會自動延長回程日）"
+        : "新增一天";
       addBtn.addEventListener("click", () => {
         ensureContent();
-        const n = tripState.content.days.length + 1;
-        tripState.content.days.push({ id: uid(), label: "Day " + n, items: [] });
-        activeDayIdx = n - 1;
-        schedulePush({ action: "新增一天", detail: "Day " + n });
-        renderDayTabs(); renderTimeline();
+        const start = String(tripState.content.tripStart || "").trim();
+        const end = String(tripState.content.tripEnd || "").trim();
+        if (start && end) {
+          const nextEnd = addDaysToIso(end, 1);
+          if (nextEnd) tripState.content.tripEnd = nextEnd;
+          syncDaysToTripRange({ trimExtra: false });
+          activeDayIdx = tripState.content.days.length - 1;
+          const dateShort = formatDayDateShort(getDayDateIso(activeDayIdx));
+          schedulePush({
+            action: "新增一天",
+            detail: (tripState.content.days[activeDayIdx]?.label || "") + (dateShort ? " · " + dateShort : "") + "（回程延至 " + tripState.content.tripEnd + "）",
+          });
+        } else {
+          const n = tripState.content.days.length + 1;
+          tripState.content.days.push({ id: uid(), label: "Day " + n, items: [] });
+          activeDayIdx = n - 1;
+          schedulePush({ action: "新增一天", detail: "Day " + n });
+        }
+        renderDayTabs();
+        renderTimeline();
       });
       tabs.appendChild(addBtn);
+      renderDayDateLabel();
     }
 
     // TODO(map): 地圖功能暫時停用（保留註解位置，日後可恢復 geocode 與地圖渲染邏輯）
@@ -1880,6 +3037,64 @@
         img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("無法讀取圖片")); };
         img.src = url;
       });
+    }
+
+    function compressReceiptImage(file) {
+      // 收據保留完整畫面（等比縮放），避免裁切掉邊角金額
+      return new Promise((resolve, reject) => {
+        if (!file || !file.type.startsWith("image/")) {
+          reject(new Error("請選擇圖片檔"));
+          return;
+        }
+        if (file.size > 12 * 1024 * 1024) {
+          reject(new Error("收據請小於 12MB"));
+          return;
+        }
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+          try {
+            const maxSide = 900;
+            const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+            const w = Math.max(1, Math.round(img.width * scale));
+            const h = Math.max(1, Math.round(img.height * scale));
+            const canvas = document.createElement("canvas");
+            canvas.width = w;
+            canvas.height = h;
+            canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+            URL.revokeObjectURL(url);
+            let quality = 0.76;
+            let data = canvas.toDataURL("image/jpeg", quality);
+            while (data.length > 320000 && quality > 0.4) {
+              quality -= 0.08;
+              data = canvas.toDataURL("image/jpeg", quality);
+            }
+            resolve(data);
+          } catch (e) {
+            URL.revokeObjectURL(url);
+            reject(e);
+          }
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("無法讀取收據圖片")); };
+        img.src = url;
+      });
+    }
+
+    function openReceiptViewer(dataUrl) {
+      const viewer = $("receiptViewer");
+      const img = $("receiptViewerImg");
+      if (!viewer || !img || !dataUrl) return;
+      img.src = dataUrl;
+      viewer.classList.add("is-open");
+      viewer.setAttribute("aria-hidden", "false");
+    }
+    function closeReceiptViewer() {
+      const viewer = $("receiptViewer");
+      const img = $("receiptViewerImg");
+      if (!viewer) return;
+      viewer.classList.remove("is-open");
+      viewer.setAttribute("aria-hidden", "true");
+      if (img) img.removeAttribute("src");
     }
 
     function applyPlaceCover(card, item) {
@@ -2028,7 +3243,9 @@
         const lock = getLock(item.id);
         const lockedByOther = lock && lock.user !== accountName;
         const card = document.createElement("div");
-        card.className = "place-card" + (lockedByOther ? " is-locked" : "");
+        card.className = "place-card"
+          + (lockedByOther ? " is-locked" : "")
+          + (item.passed ? " is-passed" : "");
         card.dataset.id = item.id;
         card.innerHTML = `
           <div class="drag-handle" title="長按拖曳">⋮⋮</div>
@@ -2044,6 +3261,7 @@
         const endDisp = displayEndTime(item);
         if (item.time && endDisp) {
           timeEl.classList.add("has-range");
+          timeEl.classList.remove("is-unset");
           const durShort = formatDurationShort(resolveItemDuration(item));
           timeEl.innerHTML =
             `<span class="t-start">${item.time}</span>` +
@@ -2054,10 +3272,12 @@
             `<span class="t-end">${endDisp}</span>`;
         } else if (item.time) {
           timeEl.classList.remove("has-range");
+          timeEl.classList.remove("is-unset");
           timeEl.innerHTML = `<span class="t-only">${item.time}</span>`;
         } else {
           timeEl.classList.remove("has-range");
-          timeEl.innerHTML = `<span class="t-only">--:--</span>`;
+          timeEl.classList.add("is-unset");
+          timeEl.innerHTML = `<span class="t-only">未定</span>`;
         }
         fillPlaceCardContent(card, item, true);
         applyPlaceCover(card, item);
@@ -2087,6 +3307,23 @@
       });
     }
 
+    function togglePlacePassed(item) {
+      const target = findPlaceById(item && item.id) || item;
+      if (!target) return;
+      const lock = getLock(target.id);
+      if (lock && lock.user !== accountName) {
+        alert((lock.user || "其他人") + " 正在編輯此景點");
+        return;
+      }
+      target.passed = !target.passed;
+      schedulePush({
+        action: target.passed ? "標記已過景點" : "取消已過景點",
+        detail: target.place || "",
+      });
+      renderTimeline();
+      renderWishlist();
+    }
+
     function renderWishlist() {
       ensureContent();
       const wrap = $("wishlist");
@@ -2100,12 +3337,22 @@
         wrap.appendChild(empty);
       }
       list.forEach((item) => {
+        const lock = getLock(item.id);
+        const lockedByOther = lock && lock.user !== accountName;
         const card = document.createElement("div");
-        card.className = "place-card";
+        card.className = "place-card wish-card"
+          + (lockedByOther ? " is-locked" : "")
+          + (item.passed ? " is-passed" : "");
         card.dataset.id = item.id;
         card.innerHTML = `
-          <div class="drag-handle">⋮⋮</div>
-          <div class="place-head"><div class="place-head-main" style="flex:1;min-width:0;"><p class="place-title"></p><div class="place-meta"></div></div></div>`;
+          <div class="drag-handle" title="長按拖曳">⋮⋮</div>
+          <div class="place-head">
+            <div class="place-head-main" style="flex:1;min-width:0;">
+              <p class="place-title"></p>
+              <div class="place-meta place-tags"></div>
+              ${lockedByOther ? `<span class="lock-badge">${lock.user} 編輯中</span>` : ""}
+            </div>
+          </div>`;
         fillPlaceCardContent(card, item, false);
         applyPlaceCover(card, item);
         card.addEventListener("click", (e) => {
@@ -2167,6 +3414,34 @@
       return "無需門票";
     }
 
+    function startAddPlace() {
+      if (!tripState || !tripState.content) return;
+      if (!tripState.content.days[activeDayIdx]) return;
+      const item = emptyItem({ time: "", endTime: "", place: "新景點" });
+      draftPlace = { item, isWish: false, dayIdx: activeDayIdx };
+      openPlaceSheet(item, activeDayIdx, false, "edit");
+    }
+    function startAddWish() {
+      ensureContent();
+      const item = emptyItem({ place: "想去的地方", time: "", endTime: "" });
+      draftPlace = { item, isWish: true, dayIdx: -1 };
+      openPlaceSheet(item, -1, true, "edit");
+    }
+    function closeAddPlanMenu() {
+      const wrap = $("fabPlanWrap");
+      if (!wrap) return;
+      wrap.classList.remove("is-open");
+      $("btnAddPlace")?.setAttribute("aria-expanded", "false");
+    }
+    function toggleAddPlanMenu() {
+      if (!tripState || !tripState.content) return;
+      const wrap = $("fabPlanWrap");
+      if (!wrap) return;
+      const open = !wrap.classList.contains("is-open");
+      wrap.classList.toggle("is-open", open);
+      $("btnAddPlace")?.setAttribute("aria-expanded", open ? "true" : "false");
+    }
+
     async function openPlaceSheet(item, dayIdx, isWish, mode) {
       // 一律從最新 tripState 取值，避免同步後物件參考過期
       const live = findPlaceById(item && item.id) || item;
@@ -2209,14 +3484,18 @@
           `${coverBlock}<div class="info-list" id="placeInfoList"></div>
            ${lockedByOther ? `<p class="hint" id="placeLockHint"></p>` : ""}`,
           `<button type="button" class="btn-ghost" id="btnMapsNav" style="flex:1;">導航</button>
+           ${lockedByOther ? "" : `<button type="button" class="btn-ghost" id="btnTogglePassed" style="flex:1;">${item.passed ? "恢復" : "已過"}</button>`}
            ${lockedByOther ? "" : '<button type="button" class="btn-ghost" id="btnSwitchEdit" style="flex:1;">編輯</button>'}`,
           "place"
         );
         const list = $("placeInfoList");
-        list.appendChild(infoRow("時間", formatTimeRange(item)));
+        const timeText = formatTimeRange(item);
+        if (timeText) list.appendChild(infoRow("時間", timeText));
         list.appendChild(infoRow("景點名稱", item.place));
+        list.appendChild(infoRow("狀態", item.passed ? "已過" : "未過"));
         list.appendChild(infoRow("標籤", tags, true));
-        list.appendChild(infoRow("停留", formatDurationLabel(resolveItemDuration(item))));
+        const stayMins = resolveItemDuration(item);
+        if (stayMins > 0) list.appendChild(infoRow("停留", formatDurationLabel(stayMins)));
         list.appendChild(infoRow("花費", costStr));
         list.appendChild(infoRow("地址", item.address));
         list.appendChild(infoRow("營業時間", item.hours));
@@ -2225,6 +3504,10 @@
         list.appendChild(infoRow("連結", linkHtml, true));
         if ($("placeLockHint")) $("placeLockHint").textContent = (lock.user || "") + " 正在編輯此景點";
         $("btnMapsNav")?.addEventListener("click", () => openGoogleMaps(item));
+        $("btnTogglePassed")?.addEventListener("click", () => {
+          togglePlacePassed(item);
+          closeSheet();
+        });
         $("btnSwitchEdit")?.addEventListener("click", () => {
           closeSheet();
           openPlaceSheet(item, dayIdx, isWish, "edit");
@@ -2245,11 +3528,12 @@
           <div class="cover-preview${pendingCover ? " has-img" : ""}" id="coverPreview">${pendingCover ? "" : "尚未上傳"}</div>
           <button type="button" class="btn-ghost btn-sm" id="btnClearCover" style="margin-top:8px;">移除圖片</button>
         </div>
-        <div class="field"><label>開始時間</label><input id="fTime" type="time" value="${item.time || ""}"/></div>
-        <div class="field"><label>結束時間</label><input id="fEndTime" type="time" value="${item.endTime || (item.time && item.durationMin ? addMinutesToTime(item.time, item.durationMin) : "")}"/></div>
+        <div class="field"><label>開始時間（選填）</label><input id="fTime" type="time" /></div>
+        <div class="field"><label>結束時間（選填）</label><input id="fEndTime" type="time" /></div>
         <div class="field"><label>停留時間（依起迄自動計算）</label>
-          <input id="fDurLabel" type="text" readonly value="${formatDurationLabel(calcDurationMin(item.time, item.endTime || (item.time && item.durationMin ? addMinutesToTime(item.time, item.durationMin) : "")))}"/>
+          <input id="fDurLabel" type="text" readonly value="—"/>
         </div>
+        <button type="button" class="btn-ghost btn-sm" id="btnClearTime" style="margin:-4px 0 10px;">清除時間</button>
         <div class="field"><label>景點名稱</label><input id="fPlace" value=""/></div>
         <div class="row">
           <div class="field"><label>花費</label><input id="fCost" type="number" min="0" step="0.01" value="${item.cost || 0}"/></div>
@@ -2275,7 +3559,7 @@
         `,
         `<button type="button" class="btn-danger btn-sm" id="btnDelPlace">刪除</button>
          <button type="button" class="btn-ghost" id="btnMapsNav">導航</button>
-         ${isWish ? '<button type="button" class="btn-ghost" id="btnToDay">排入今日</button>' : '<button type="button" class="btn-ghost" id="btnToWish">想去</button>'}
+         ${isWish ? '<button type="button" class="btn-ghost" id="btnToDay">排入此日</button>' : '<button type="button" class="btn-ghost" id="btnToWish">想去</button>'}
          <button type="button" class="btn-primary" id="btnSavePlace" style="flex:1;">儲存</button>`,
         "place"
       );
@@ -2288,14 +3572,37 @@
       const preview = $("coverPreview");
       if (pendingCover) preview.style.backgroundImage = `url("${pendingCover}")`;
 
+      const initialEnd = item.endTime || (item.time && item.durationMin ? addMinutesToTime(item.time, item.durationMin) : "");
+      const resetTimeInput = (el, val) => {
+        if (!el) return;
+        const v = String(val || "").trim();
+        // 部分瀏覽器對 type=time 設空字串會失敗，切換 type 強制重設
+        try {
+          el.type = "text";
+          el.value = v;
+          el.type = "time";
+          el.value = v;
+        } catch {
+          el.value = v;
+        }
+      };
+      resetTimeInput($("fTime"), item.time || "");
+      resetTimeInput($("fEndTime"), initialEnd || "");
+
       const syncDurationLabel = () => {
         const mins = calcDurationMin($("fTime").value, $("fEndTime").value);
         $("fDurLabel").value = formatDurationLabel(mins);
       };
+      syncDurationLabel();
       $("fTime")?.addEventListener("change", syncDurationLabel);
       $("fTime")?.addEventListener("input", syncDurationLabel);
       $("fEndTime")?.addEventListener("change", syncDurationLabel);
       $("fEndTime")?.addEventListener("input", syncDurationLabel);
+      $("btnClearTime")?.addEventListener("click", () => {
+        resetTimeInput($("fTime"), "");
+        resetTimeInput($("fEndTime"), "");
+        syncDurationLabel();
+      });
 
       $("fCover")?.addEventListener("change", async (e) => {
         const file = e.target.files && e.target.files[0];
@@ -2331,11 +3638,13 @@
           const [title, url] = l.split("|");
           return { title: (title || "").trim(), url: (url || title || "").trim() };
         });
+        const timeVal = String($("fTime")?.value || "").trim();
+        const endVal = String($("fEndTime")?.value || "").trim();
         Object.assign(target, {
-          time: $("fTime").value || "",
-          endTime: $("fEndTime").value || "",
+          time: timeVal,
+          endTime: endVal,
           place: $("fPlace").value.trim(),
-          durationMin: calcDurationMin($("fTime").value, $("fEndTime").value),
+          durationMin: timeVal && endVal ? calcDurationMin(timeVal, endVal) : 0,
           cost: Number($("fCost").value) || 0,
           currency: $("fCur").value,
           address: $("fAddr").value.trim(),
@@ -2347,6 +3656,10 @@
           tags: tags.length ? tags : ["other"],
           coverImage: pendingCover || "",
         });
+        // 明確清掉時間相關殘值，避免舊 endTime/duration 被顯示邏輯推回
+        if (!timeVal) target.time = "";
+        if (!endVal) target.endTime = "";
+        if (!timeVal || !endVal) target.durationMin = 0;
         delete target.lat;
         delete target.lng;
 
@@ -2394,7 +3707,8 @@
         if (tripState.content.days[activeDayIdx]) {
           tripState.content.days[activeDayIdx].items.push(target);
         }
-        schedulePush({ action: "排入日程", detail: target.place || "" });
+        const dayLabel = tripState.content.days[activeDayIdx]?.label || ("Day " + (activeDayIdx + 1));
+        schedulePush({ action: "排入日程", detail: `${target.place || ""} → ${dayLabel}` });
         closeSheet();
         renderTimeline();
         renderWishlist();
@@ -2427,6 +3741,44 @@
     // TODO(map): 此區塊暫時停用，未來恢復時可在此放回 renderMap/highlightMap。
 
     /* ===== Money ===== */
+    const EXPENSE_CATS = [
+      { id: "food", label: "飲食", color: "#e07a5f" },
+      { id: "transport", label: "交通", color: "#3d8bfd" },
+      { id: "shopping", label: "購物", color: "#7b6cf6" },
+      { id: "souvenir", label: "伴手禮", color: "#e9a825" },
+      { id: "stay", label: "住宿", color: "#2a9d8f" },
+      { id: "other", label: "其他", color: "#6b7280" },
+      { id: "public", label: "公費", color: "#c9782c" },
+    ];
+    const EXPENSE_CAT_MAP = Object.fromEntries(EXPENSE_CATS.map((c) => [c.id, c]));
+
+    function normalizeExpenseCat(cat) {
+      const id = String(cat || "").trim();
+      return EXPENSE_CAT_MAP[id] ? id : "other";
+    }
+    function expenseCatLabel(cat) {
+      return (EXPENSE_CAT_MAP[normalizeExpenseCat(cat)] || EXPENSE_CAT_MAP.other).label;
+    }
+    function isPublicFundExpense(ex) {
+      return normalizeExpenseCat(ex && ex.category) === "public" || !!(ex && ex.usePublicFund);
+    }
+    function memberCount() {
+      return Math.max(1, Object.keys((tripState && tripState.members) || {}).length);
+    }
+    function getPublicFundTwd() {
+      ensureContent();
+      const pf = tripState.content.publicFund || {};
+      return Number(pf.amountTwd) || 0;
+    }
+    function getPublicFundPerPerson() {
+      return Math.round((getPublicFundTwd() / memberCount()) * 100) / 100;
+    }
+    function getPublicFundSpent() {
+      return (tripState.content.expenses || [])
+        .filter(isPublicFundExpense)
+        .reduce((s, ex) => s + (Number(ex.amountTwd) || 0), 0);
+    }
+
     function toTwd(amount, currency) {
       ensureContent();
       const fx = tripState.content.fx || DEFAULT_FX;
@@ -2444,6 +3796,336 @@
       return v.toLocaleString("zh-TW", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
     }
 
+    function calcExpenseNets() {
+      const net = {};
+      const paidBy = {};
+      const shareOf = {};
+      (tripState.content.expenses || []).forEach((ex) => {
+        // 公費支出不進智慧算帳
+        if (isPublicFundExpense(ex)) return;
+        const amt = Number(ex.amountTwd) || 0;
+        const payer = ex.payer || "";
+        if (payer) paidBy[payer] = (paidBy[payer] || 0) + amt;
+        const split = (ex.splitWith || []).filter(Boolean);
+        if (!split.length) return;
+        const each = amt / split.length;
+        if (payer) net[payer] = (net[payer] || 0) + amt;
+        split.forEach((p) => {
+          net[p] = (net[p] || 0) - each;
+          shareOf[p] = (shareOf[p] || 0) + each;
+        });
+      });
+      return { net, paidBy, shareOf };
+    }
+
+    function buildSettleTransfers(net) {
+      const creditors = [], debtors = [];
+      Object.keys(net).forEach((p) => {
+        const v = Math.round(net[p] * 100) / 100;
+        if (v > 0.5) creditors.push({ p, v });
+        else if (v < -0.5) debtors.push({ p, v: -v });
+      });
+      creditors.sort((a, b) => b.v - a.v);
+      debtors.sort((a, b) => b.v - a.v);
+      const transfers = [];
+      let i = 0, j = 0;
+      while (i < debtors.length && j < creditors.length) {
+        const pay = Math.min(debtors[i].v, creditors[j].v);
+        transfers.push({ from: debtors[i].p, to: creditors[j].p, amount: Math.round(pay) });
+        debtors[i].v -= pay; creditors[j].v -= pay;
+        if (debtors[i].v < 0.5) i++;
+        if (creditors[j].v < 0.5) j++;
+      }
+      return transfers;
+    }
+
+    function renderPublicFundCard() {
+      const el = $("publicFundCard");
+      if (!el) return;
+      ensureContent();
+      const total = getPublicFundTwd();
+      const per = getPublicFundPerPerson();
+      const spent = Math.round(getPublicFundSpent() * 100) / 100;
+      const left = Math.round((total - spent) * 100) / 100;
+      if (total <= 0 && spent <= 0) {
+        el.innerHTML = `
+          <h3>公費</h3>
+          <div class="public-fund-row"><span>尚未加入</span><strong>—</strong></div>
+          <p class="personal-hint" style="margin-top:6px;">點「加入公費」可多次加錢疊加；用「公費」記帳會從餘額扣除，且不進智慧算帳。</p>
+        `;
+        return;
+      }
+      el.innerHTML = `
+        <h3>公費</h3>
+        <div class="public-fund-row"><span>累計加入</span><strong>NT$ ${formatTwd(total)}</strong></div>
+        <div class="public-fund-row"><span>每人平分</span><strong>NT$ ${formatTwd(per)}</strong></div>
+        <div class="public-fund-row"><span>已用／剩餘</span><strong>NT$ ${formatTwd(spent)}／${formatTwd(left)}</strong></div>
+      `;
+    }
+
+    function openPublicFundSheet() {
+      ensureContent();
+      const pf = tripState.content.publicFund || { amount: 0, currency: "TWD", amountTwd: 0 };
+      const currentTotal = Number(pf.amountTwd) || 0;
+      const spent = Math.round(getPublicFundSpent() * 100) / 100;
+      const left = Math.round((currentTotal - spent) * 100) / 100;
+      openSheet("加入公費", `
+        <div class="public-fund-card" style="margin-bottom:12px;">
+          <div class="public-fund-row"><span>目前累計</span><strong>NT$ ${formatTwd(currentTotal)}</strong></div>
+          <div class="public-fund-row"><span>目前剩餘</span><strong>NT$ ${formatTwd(left)}</strong></div>
+        </div>
+        <div class="field"><label>本次加入金額</label><input id="pfAmt" type="number" step="0.01" inputmode="decimal" value="" placeholder="例如 1000" /></div>
+        <div class="field">
+          <label>幣別</label>
+          <div class="cur-seg" id="pfCurSeg">
+            ${["TWD","JPY","USD","EUR","KRW","THB"].map((c) =>
+              `<button type="button" class="cur-opt${(pf.currency || "TWD") === c ? " is-active" : ""}" data-cur="${c}">${c}</button>`
+            ).join("")}
+          </div>
+          <input type="hidden" id="pfCur" value="${pf.currency || "TWD"}" />
+        </div>
+        <p class="hint" id="pfHint"></p>
+        <p class="hint">輸入金額會疊加到現有公費，不會覆蓋。扣款後再加入也會繼續累加。</p>
+      `, `${currentTotal > 0 || spent > 0 ? '<button type="button" class="btn-danger" id="btnResetPublicFund">公費歸 0</button>' : ''}<button type="button" class="btn-primary" id="btnSavePublicFund" style="flex:1;">加入</button>`);
+      const updateHint = () => {
+        const amt = Number($("pfAmt").value) || 0;
+        const cur = $("pfCur").value || "TWD";
+        const addTwd = toTwd(amt, cur);
+        const nextTotal = Math.round((currentTotal + addTwd) * 100) / 100;
+        const nextLeft = Math.round((left + addTwd) * 100) / 100;
+        const per = Math.round((nextTotal / memberCount()) * 100) / 100;
+        $("pfHint").textContent = amt
+          ? `本次約合 NT$ ${formatTwd(addTwd)} → 累計 NT$ ${formatTwd(nextTotal)}（剩餘 NT$ ${formatTwd(nextLeft)}）· 每人平分 NT$ ${formatTwd(per)}`
+          : `請輸入要加入的金額（目前累計 NT$ ${formatTwd(currentTotal)}）`;
+      };
+      $("pfCurSeg")?.addEventListener("click", (e) => {
+        const btn = e.target.closest(".cur-opt");
+        if (!btn) return;
+        $("pfCur").value = btn.getAttribute("data-cur");
+        $("pfCurSeg").querySelectorAll(".cur-opt").forEach((b) => b.classList.toggle("is-active", b === btn));
+        updateHint();
+      });
+      $("pfAmt")?.addEventListener("input", updateHint);
+      updateHint();
+      $("btnResetPublicFund")?.addEventListener("click", () => {
+        if (!confirm("確定將公費累計歸 0？\n已用的公費支出紀錄不會刪除。")) return;
+        ensureContent();
+        tripState.content.publicFund = {
+          amount: 0,
+          currency: "TWD",
+          amountTwd: 0,
+          resetAt: new Date().toISOString(),
+        };
+        schedulePush({ action: "公費歸零", detail: "" });
+        closeSheet();
+        renderMoney();
+        showToast("公費已歸 0");
+      });
+      $("btnSavePublicFund")?.addEventListener("click", () => {
+        ensureContent();
+        const amount = Number($("pfAmt").value) || 0;
+        if (amount <= 0) {
+          alert("請輸入要加入的金額");
+          return;
+        }
+        const currency = $("pfCur").value || "TWD";
+        const addTwd = toTwd(amount, currency);
+        const prev = tripState.content.publicFund || { amount: 0, currency: "TWD", amountTwd: 0 };
+        const nextTwd = Math.round(((Number(prev.amountTwd) || 0) + addTwd) * 100) / 100;
+        tripState.content.publicFund = {
+          amount: nextTwd,
+          currency: "TWD",
+          amountTwd: nextTwd,
+          lastAdd: { amount, currency, amountTwd: addTwd, at: new Date().toISOString() },
+        };
+        schedulePush({ action: "加入公費", detail: `+NT$ ${formatTwd(addTwd)}（累計 NT$ ${formatTwd(nextTwd)}）` });
+        closeSheet();
+        renderMoney();
+        showToast(`已加入公費 NT$ ${formatTwd(addTwd)}`);
+      });
+    }
+
+    function aggregateByKey(map) {
+      return Object.keys(map)
+        .map((k) => ({ key: k, value: Math.round(map[k] * 100) / 100 }))
+        .filter((x) => x.value > 0.009)
+        .sort((a, b) => b.value - a.value);
+    }
+
+    function buildPieSlices(entries, colorOf) {
+      const total = entries.reduce((s, e) => s + e.value, 0);
+      if (!total) return { total: 0, slices: [] };
+      let angle = -Math.PI / 2;
+      const slices = entries.map((e) => {
+        const portion = e.value / total;
+        const sweep = portion * Math.PI * 2;
+        const start = angle;
+        const end = angle + sweep;
+        angle = end;
+        const large = sweep > Math.PI ? 1 : 0;
+        const r = 50;
+        const x1 = 50 + r * Math.cos(start);
+        const y1 = 50 + r * Math.sin(start);
+        const x2 = 50 + r * Math.cos(end);
+        const y2 = 50 + r * Math.sin(end);
+        const path = sweep >= Math.PI * 2 - 0.001
+          ? `M 50 50 m -${r} 0 a ${r} ${r} 0 1 1 ${r * 2} 0 a ${r} ${r} 0 1 1 -${r * 2} 0`
+          : `M 50 50 L ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} Z`;
+        return {
+          ...e,
+          portion,
+          color: colorOf(e.key),
+          path,
+        };
+      });
+      return { total, slices };
+    }
+
+    function pieBlockHtml(title, entries, colorOf, emptyText) {
+      const { total, slices } = buildPieSlices(entries, colorOf);
+      if (!slices.length) {
+        return `<div class="pie-block"><h4>${title}</h4><div class="pie-empty">${emptyText || "尚無資料"}</div></div>`;
+      }
+      const svg = `<svg class="pie-svg" viewBox="0 0 100 100" aria-hidden="true">${
+        slices.map((s) => `<path d="${s.path}" fill="${s.color}"></path>`).join("")
+      }</svg>`;
+      const legend = slices.map((s) => `
+        <div class="pie-leg-row">
+          <span class="pie-dot" style="background:${s.color}"></span>
+          <span>${s.label || s.key}</span>
+          <span class="pie-leg-amt">NT$ ${formatTwd(s.value)}（${Math.round(s.portion * 100)}%）</span>
+        </div>
+      `).join("");
+      return `
+        <div class="pie-block">
+          <h4>${title}<span style="font-weight:600;color:var(--muted);font-size:.78rem;"> · NT$ ${formatTwd(total)}</span></h4>
+          <div class="pie-wrap">${svg}<div class="pie-legend">${legend}</div></div>
+        </div>
+      `;
+    }
+
+    function collectPersonalChartData(me) {
+      const prepaidByCat = {};
+      const afterByCat = {};
+      (tripState.content.expenses || []).forEach((ex) => {
+        const cat = normalizeExpenseCat(ex.category);
+        const label = expenseCatLabel(cat);
+        const amt = Number(ex.amountTwd) || 0;
+        if (isPublicFundExpense(ex)) return;
+        if (ex.payer === me && amt) {
+          prepaidByCat[label] = (prepaidByCat[label] || 0) + amt;
+        }
+        const split = (ex.splitWith || []).filter(Boolean);
+        if (split.includes(me) && split.length) {
+          afterByCat[label] = (afterByCat[label] || 0) + amt / split.length;
+        }
+      });
+      // 公費平分計入「收款後支出」圓餅
+      const pfPer = getPublicFundPerPerson();
+      if (pfPer > 0) {
+        afterByCat["公費平分"] = (afterByCat["公費平分"] || 0) + pfPer;
+      }
+
+      const { net } = calcExpenseNets();
+      const transfers = buildSettleTransfers({ ...net });
+      const expectByPerson = {};
+      transfers.filter((t) => t.to === me).forEach((t) => {
+        expectByPerson[t.from] = (expectByPerson[t.from] || 0) + t.amount;
+      });
+
+      const catColor = (label) => {
+        const found = EXPENSE_CATS.find((c) => c.label === label);
+        if (found) return found.color;
+        if (label === "公費平分") return "#c9782c";
+        return "#94a3b8";
+      };
+      const personColors = ["#0d7a7a", "#3d8bfd", "#e07a5f", "#7b6cf6", "#e9a825", "#2a9d8f", "#c9782c"];
+      const personColor = (name) => {
+        let h = 0;
+        const s = String(name || "");
+        for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+        return personColors[h % personColors.length];
+      };
+
+      return {
+        prepaid: aggregateByKey(prepaidByCat).map((x) => ({ ...x, label: x.key })),
+        after: aggregateByKey(afterByCat).map((x) => ({ ...x, label: x.key })),
+        expect: aggregateByKey(expectByPerson).map((x) => ({ ...x, label: x.key })),
+        catColor,
+        personColor,
+      };
+    }
+
+    function openPersonalChartsSheet() {
+      const me = accountName || "";
+      if (!me || isAdminSession()) return;
+      ensureContent();
+      const data = collectPersonalChartData(me);
+      openSheet("我的支出圖表", `
+        ${pieBlockHtml("我墊錢後的支出", data.prepaid, data.catColor, "尚無你墊付的支出")}
+        ${pieBlockHtml("我收錢後的支出", data.after, data.catColor, "尚無分攤支出")}
+        ${pieBlockHtml("預計收到多少錢", data.expect, data.personColor, "目前沒有預計收款")}
+      `);
+    }
+
+    function renderPersonalMoney(net, paidBy, shareOf, transfers) {
+      const el = $("personalMoney");
+      if (!el) return;
+      const me = accountName || "";
+      if (!me || isAdminSession()) {
+        el.innerHTML = `<div class="personal-money-head"><h3>我的帳務</h3></div><p class="personal-hint">登入一般帳號後可看個人墊付與預計收款。</p>`;
+        return;
+      }
+      const prepaid = Math.round((paidBy[me] || 0) * 100) / 100;
+      const myShare = Math.round((shareOf[me] || 0) * 100) / 100;
+      const pfPer = getPublicFundPerPerson();
+      const balance = Math.round((net[me] || 0) * 100) / 100;
+      const expectIn = balance > 0.5 ? balance : 0;
+      const expectOut = balance < -0.5 ? -balance : 0;
+      const afterSettle = Math.round((myShare + pfPer) * 100) / 100;
+      const myIn = (transfers || []).filter((t) => t.to === me);
+      const myOut = (transfers || []).filter((t) => t.from === me);
+
+      el.innerHTML = `
+        <div class="personal-money-head">
+          <h3>我的帳務</h3>
+          <button type="button" class="personal-chart-btn" id="btnPersonalCharts" title="支出圖表" aria-label="支出圖表">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.21 15.89A10 10 0 1 1 8 2.83"/>
+              <path d="M22 12A10 10 0 0 0 12 2v10z"/>
+            </svg>
+          </button>
+        </div>
+        <div class="personal-money-grid">
+          <div class="personal-row">
+            <div class="personal-row-label">未分帳前支出（我墊付）</div>
+            <div class="personal-row-value">NT$ ${formatTwd(prepaid)}</div>
+          </div>
+          <div class="personal-row is-ok">
+            <div class="personal-row-label">預計收到的款項</div>
+            <div class="personal-row-value">NT$ ${formatTwd(expectIn)}</div>
+          </div>
+          <div class="personal-row">
+            <div class="personal-row-label">預計付出的款項</div>
+            <div class="personal-row-value">NT$ ${formatTwd(expectOut)}</div>
+          </div>
+          <div class="personal-row">
+            <div class="personal-row-label">公費平分</div>
+            <div class="personal-row-value">NT$ ${formatTwd(pfPer)}</div>
+          </div>
+          <div class="personal-row is-accent">
+            <div class="personal-row-label">預計收款後的支出</div>
+            <div class="personal-row-value">NT$ ${formatTwd(afterSettle)}</div>
+          </div>
+        </div>
+        <p class="personal-hint">
+          「預計收款後的支出」＝個人分攤${pfPer ? `＋公費平分 NT$ ${formatTwd(pfPer)}` : ""}。
+          ${myIn.length ? `將有 ${myIn.length} 筆轉入。` : ""}${myOut.length ? `將有 ${myOut.length} 筆轉出。` : ""}
+        </p>
+      `;
+      $("btnPersonalCharts")?.addEventListener("click", openPersonalChartsSheet);
+    }
+
     function renderMoney() {
       ensureContent();
       const expenses = tripState.content.expenses || [];
@@ -2457,6 +4139,7 @@
         (ex.splitWith || []).forEach((p) => avatarNames.add(p));
       });
       warmAvatarsForNames([...avatarNames]);
+      renderPublicFundCard();
 
       const summary = $("moneySummary");
       if (summary) {
@@ -2496,23 +4179,37 @@
         const orig = ex.currency === "TWD"
           ? ""
           : `${ex.currency} ${Number(ex.amount || 0).toLocaleString("zh-TW")}`;
+        const hasReceipt = !!ex.receiptImage;
+        const cat = normalizeExpenseCat(ex.category);
+        const isPublic = isPublicFundExpense(ex);
 
         card.innerHTML = `
           <div class="ex-avatar">${moneyInitial(ex.payer)}</div>
           <div class="ex-body">
             <div class="ex-title"></div>
             <div class="ex-meta">
-              <span class="ex-chip">分攤 ${split.length || 0}</span>
-              <div class="ex-split">${splitAvatars}</div>
+              <span class="ex-chip is-cat${isPublic ? " is-public" : ""}">${expenseCatLabel(cat)}</span>
+              <span class="ex-chip">${isPublic ? "不進算帳" : `分攤 ${split.length || 0}`}</span>
+              ${hasReceipt ? `<span class="ex-receipt-badge">收據</span>` : ""}
+              ${isPublic ? "" : `<div class="ex-split">${splitAvatars}</div>`}
             </div>
           </div>
           <div class="ex-amt">
             <div class="ex-twd">NT$ ${formatTwd(ex.amountTwd)}</div>
             ${orig ? `<div class="ex-orig">${orig}</div>` : ""}
           </div>
+          ${hasReceipt ? `<div class="ex-receipt-thumb" title="查看收據"></div>` : ""}
         `;
         card.querySelector(".ex-title").textContent = ex.title || "消費";
         applyAvatarToEl(card.querySelector(".ex-avatar"), ex.payer || "");
+        const thumb = card.querySelector(".ex-receipt-thumb");
+        if (thumb && ex.receiptImage) {
+          thumb.style.backgroundImage = `url(${ex.receiptImage})`;
+          thumb.addEventListener("click", (e) => {
+            e.stopPropagation();
+            openReceiptViewer(ex.receiptImage);
+          });
+        }
         card.addEventListener("click", () => openExpenseSheet(ex));
         list.appendChild(card);
       });
@@ -2685,31 +4382,9 @@
       const el = $("settleList");
       const badge = $("settleBadge");
       el.innerHTML = "";
-      const net = {};
-      (tripState.content.expenses || []).forEach((ex) => {
-        const split = (ex.splitWith || []).filter(Boolean);
-        if (!split.length) return;
-        const each = (ex.amountTwd || 0) / split.length;
-        net[ex.payer] = (net[ex.payer] || 0) + (ex.amountTwd || 0);
-        split.forEach((p) => { net[p] = (net[p] || 0) - each; });
-      });
-      const creditors = [], debtors = [];
-      Object.keys(net).forEach((p) => {
-        const v = Math.round(net[p] * 100) / 100;
-        if (v > 0.5) creditors.push({ p, v });
-        else if (v < -0.5) debtors.push({ p, v: -v });
-      });
-      creditors.sort((a, b) => b.v - a.v);
-      debtors.sort((a, b) => b.v - a.v);
-      const transfers = [];
-      let i = 0, j = 0;
-      while (i < debtors.length && j < creditors.length) {
-        const pay = Math.min(debtors[i].v, creditors[j].v);
-        transfers.push({ from: debtors[i].p, to: creditors[j].p, amount: Math.round(pay) });
-        debtors[i].v -= pay; creditors[j].v -= pay;
-        if (debtors[i].v < 0.5) i++;
-        if (creditors[j].v < 0.5) j++;
-      }
+      const { net, paidBy, shareOf } = calcExpenseNets();
+      const transfers = buildSettleTransfers(net);
+      renderPersonalMoney(net, paidBy, shareOf, transfers);
       if (!transfers.length) {
         if (badge) {
           badge.textContent = "已結清";
@@ -2745,11 +4420,24 @@
       const isNew = !ex;
       const data = ex || {
         id: uid(), title: "", amount: 0, currency: "JPY", payer: accountName,
-        splitWith: members.slice(), at: new Date().toISOString(),
+        splitWith: members.slice(), at: new Date().toISOString(), receiptImage: "",
+        category: "food",
       };
+      let receiptImage = data.receiptImage || "";
+      let category = normalizeExpenseCat(data.category);
       openSheet(isNew ? "新增記帳" : "編輯記帳", `
         <div class="field"><label>項目</label><input id="eTitle" /></div>
         <div class="field"><label>金額</label><input id="eAmt" type="number" step="0.01" inputmode="decimal" /></div>
+        <div class="field">
+          <label>分類</label>
+          <div class="cat-seg" id="eCatSeg">
+            ${EXPENSE_CATS.map((c) =>
+              `<button type="button" class="cat-opt${c.id === "public" ? " is-public" : ""}${category === c.id ? " is-active" : ""}" data-cat="${c.id}">${c.label}</button>`
+            ).join("")}
+          </div>
+          <input type="hidden" id="eCat" value="${category}" />
+          <p class="hint" id="eCatHint" style="margin-top:6px;"></p>
+        </div>
         <div class="field">
           <label>幣別</label>
           <div class="cur-seg" id="eCurSeg">
@@ -2759,16 +4447,90 @@
           </div>
           <input type="hidden" id="eCur" value="${data.currency || "JPY"}" />
         </div>
-        <div class="field"><label>付款人</label>
-          <select id="ePayer">${members.map((m)=>`<option ${data.payer===m?"selected":""}>${m}</option>`).join("")}</select>
+        <div id="ePersonalFields">
+          <div class="field"><label>付款人</label>
+            <select id="ePayer">${members.map((m)=>`<option ${data.payer===m?"selected":""}>${m}</option>`).join("")}</select>
+          </div>
+          <div class="field"><label>平攤人</label>
+            <div id="eSplit">${members.map((m)=>`<label class="check-label"><input type="checkbox" value="${m}" ${(data.splitWith||[]).includes(m)?"checked":""}/> ${m}</label>`).join("")}</div>
+          </div>
         </div>
-        <div class="field"><label>平攤人</label>
-          <div id="eSplit">${members.map((m)=>`<label class="check-label"><input type="checkbox" value="${m}" ${(data.splitWith||[]).includes(m)?"checked":""}/> ${m}</label>`).join("")}</div>
+        <div class="field">
+          <label>收據圖片（選填）</label>
+          <div class="receipt-field">
+            <div class="receipt-preview-wrap${receiptImage ? " has-img" : ""}" id="eReceiptWrap">
+              <img id="eReceiptPreview" alt="收據預覽" />
+            </div>
+            <div class="receipt-actions">
+              <label class="btn-ghost btn-sm" style="margin:0;">
+                ${receiptImage ? "更換收據" : "上傳收據"}
+                <input type="file" id="eReceiptFile" class="sr-only" accept="image/*" />
+              </label>
+              <button type="button" class="btn-ghost btn-sm${receiptImage ? "" : " hidden"}" id="eReceiptView">查看大圖</button>
+              <button type="button" class="btn-danger btn-sm${receiptImage ? "" : " hidden"}" id="eReceiptClear">移除</button>
+            </div>
+          </div>
         </div>
         <p class="hint" id="eTwdHint"></p>
       `, `${!isNew?'<button type="button" class="btn-danger" id="eDel">刪除</button>':''}<button type="button" class="btn-primary" id="eSave" style="flex:1;">儲存</button>`, "expense");
       $("eTitle").value = data.title || "";
       $("eAmt").value = data.amount || "";
+      const preview = $("eReceiptPreview");
+      const wrap = $("eReceiptWrap");
+      const syncReceiptUi = () => {
+        if (preview) {
+          if (receiptImage) preview.src = receiptImage;
+          else preview.removeAttribute("src");
+        }
+        wrap?.classList.toggle("has-img", !!receiptImage);
+        $("eReceiptView")?.classList.toggle("hidden", !receiptImage);
+        $("eReceiptClear")?.classList.toggle("hidden", !receiptImage);
+        const uploadLabel = $("eReceiptFile")?.closest("label");
+        if (uploadLabel) {
+          const input = $("eReceiptFile");
+          uploadLabel.textContent = receiptImage ? "更換收據" : "上傳收據";
+          if (input) uploadLabel.appendChild(input);
+        }
+      };
+      const syncCatUi = () => {
+        const isPublic = category === "public";
+        $("ePersonalFields")?.classList.toggle("hidden", isPublic);
+        const hint = $("eCatHint");
+        if (hint) {
+          hint.textContent = isPublic
+            ? "此筆由公費支出，不會進入智慧算帳。"
+            : "";
+        }
+      };
+      syncReceiptUi();
+      syncCatUi();
+      $("eCatSeg")?.addEventListener("click", (e) => {
+        const btn = e.target.closest(".cat-opt");
+        if (!btn) return;
+        category = btn.getAttribute("data-cat");
+        $("eCat").value = category;
+        $("eCatSeg").querySelectorAll(".cat-opt").forEach((b) => {
+          b.classList.toggle("is-active", b === btn);
+        });
+        syncCatUi();
+      });
+      preview?.addEventListener("click", () => { if (receiptImage) openReceiptViewer(receiptImage); });
+      $("eReceiptView")?.addEventListener("click", () => { if (receiptImage) openReceiptViewer(receiptImage); });
+      $("eReceiptClear")?.addEventListener("click", () => {
+        receiptImage = "";
+        syncReceiptUi();
+      });
+      $("eReceiptFile")?.addEventListener("change", async (e) => {
+        const file = e.target.files && e.target.files[0];
+        e.target.value = "";
+        if (!file) return;
+        try {
+          receiptImage = await compressReceiptImage(file);
+          syncReceiptUi();
+        } catch (err) {
+          alert(err.message || err);
+        }
+      });
       const updateHint = () => {
         const twd = toTwd(Number($("eAmt").value) || 0, $("eCur").value);
         $("eTwdHint").textContent = `約合台幣 NT$ ${twd}`;
@@ -2786,21 +4548,36 @@
       updateHint();
       $("eSave").addEventListener("click", () => {
         ensureContent();
+        const isPublic = category === "public";
         data.title = $("eTitle").value.trim() || "消費";
         data.amount = Number($("eAmt").value) || 0;
         data.currency = $("eCur").value;
-        data.payer = $("ePayer").value;
-        data.splitWith = [...document.querySelectorAll("#eSplit input:checked")].map((x) => x.value);
+        data.category = category;
+        data.usePublicFund = isPublic;
+        data.payer = isPublic ? (accountName || data.payer || "") : ($("ePayer")?.value || data.payer || "");
+        data.splitWith = isPublic ? [] : [...document.querySelectorAll("#eSplit input:checked")].map((x) => x.value);
         data.amountTwd = toTwd(data.amount, data.currency);
+        data.receiptImage = receiptImage || "";
         data.at = new Date().toISOString();
+        if (isPublic) {
+          const left = getPublicFundTwd() - getPublicFundSpent();
+          // 編輯時先把本筆舊額加回剩餘判斷
+          const old = (tripState.content.expenses || []).find((x) => x.id === data.id);
+          const oldAmt = old && isPublicFundExpense(old) ? (Number(old.amountTwd) || 0) : 0;
+          if (data.amountTwd > left + oldAmt + 0.5) {
+            if (!confirm(`公費剩餘約 NT$ ${formatTwd(left + oldAmt)}，此筆 NT$ ${formatTwd(data.amountTwd)} 可能超支，仍要儲存？`)) return;
+          }
+        }
         const idx = tripState.content.expenses.findIndex((x) => x.id === data.id);
         if (idx >= 0) tripState.content.expenses[idx] = data;
         else tripState.content.expenses.push(data);
-        schedulePush({ action: "記帳", detail: data.title });
+        schedulePush({ action: "記帳", detail: `${expenseCatLabel(category)} · ${data.title}` });
         closeSheet();
         renderMoney();
       });
       $("eDel")?.addEventListener("click", () => {
+        const title = data.title || $("eTitle")?.value?.trim() || "這筆支出";
+        if (!confirm(`確定刪除「${title}」？\n刪除後無法復原。`)) return;
         ensureContent();
         tripState.content.expenses = tripState.content.expenses.filter((x) => x.id !== data.id);
         schedulePush({ action: "刪除記帳", detail: data.title });
@@ -2810,20 +4587,164 @@
     }
 
     /* ===== Prep / docs ===== */
+    function luggageDoneByList(it) {
+      if (!it) return [];
+      if (Array.isArray(it.doneBy)) return it.doneBy.map((n) => String(n || "").trim()).filter(Boolean);
+      if (it.doneBy && typeof it.doneBy === "object") {
+        return Object.keys(it.doneBy).filter((k) => it.doneBy[k]);
+      }
+      return [];
+    }
+    function normalizeLuggageItem(it) {
+      if (!it || typeof it !== "object") return it;
+      if (!Array.isArray(it.doneBy)) it.doneBy = luggageDoneByList(it);
+      it.done = it.doneBy.length > 0 || !!it.done;
+      return it;
+    }
+    const DEL_ICON_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
+
+    function openLuggageSheet(existing) {
+      ensureContent();
+      const isNew = !existing;
+      const data = existing || { id: uid(), text: "", done: false, doneBy: [] };
+      const readyHint = isNew
+        ? ""
+        : `<p class="hint">已準備：${luggageDoneByList(data).length ? luggageDoneByList(data).join("、") : "尚無人"}</p>`;
+      openSheet(
+        isNew ? "新增行李" : "編輯行李",
+        `<div class="field"><label>項目名稱</label><input id="lugText" maxlength="80" placeholder="例如：護照、轉接頭" /></div>${readyHint}`,
+        `${isNew ? "" : '<button type="button" class="btn-danger btn-sm" id="btnDelLug">刪除</button>'}
+         <button type="button" class="btn-primary" id="btnSaveLug" style="flex:1;">儲存</button>`
+      );
+      $("lugText").value = data.text || "";
+      setTimeout(() => $("lugText")?.focus(), 50);
+      $("btnSaveLug")?.addEventListener("click", () => {
+        const text = ($("lugText").value || "").trim();
+        if (!text) { alert("請填寫項目名稱"); return; }
+        ensureContent();
+        if (isNew) {
+          tripState.content.checklists.luggage.push({
+            id: data.id, text, done: false, doneBy: [],
+          });
+          schedulePush({ action: "新增行李項目", detail: text });
+        } else {
+          const it = tripState.content.checklists.luggage.find((x) => x.id === data.id);
+          if (it) {
+            it.text = text;
+            schedulePush({ action: "編輯行李項目", detail: text });
+          }
+        }
+        closeSheet();
+        renderPrep();
+      });
+      $("btnDelLug")?.addEventListener("click", () => {
+        if (!confirm(`確定刪除「${data.text || "此項目"}」？`)) return;
+        tripState.content.checklists.luggage = tripState.content.checklists.luggage.filter((x) => x.id !== data.id);
+        schedulePush({ action: "刪除行李項目", detail: data.text || "" });
+        closeSheet();
+        renderPrep();
+      });
+    }
+
+    function openTaskSheet(existing) {
+      ensureContent();
+      const isNew = !existing;
+      const members = Object.keys(tripState.members || {});
+      if (accountName && !members.includes(accountName)) members.unshift(accountName);
+      const data = existing || { id: uid(), text: "", assignee: accountName || "", done: false };
+      const opts = [`<option value="">未指派</option>`]
+        .concat(members.map((m) => {
+          const safe = String(m).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+          return `<option value="${safe}" ${m === (data.assignee || "") ? "selected" : ""}>${safe}</option>`;
+        }))
+        .join("");
+      openSheet(
+        isNew ? "新增待辦" : "編輯待辦",
+        `<div class="field"><label>待辦內容</label><input id="taskText" maxlength="120" placeholder="例如：訂餐廳、換日幣" /></div>
+         <div class="field"><label>負責人</label><select id="taskAssignee">${opts}</select></div>`,
+        `${isNew ? "" : '<button type="button" class="btn-danger btn-sm" id="btnDelTask">刪除</button>'}
+         <button type="button" class="btn-primary" id="btnSaveTask" style="flex:1;">儲存</button>`
+      );
+      $("taskText").value = data.text || "";
+      setTimeout(() => $("taskText")?.focus(), 50);
+      $("btnSaveTask")?.addEventListener("click", () => {
+        const text = ($("taskText").value || "").trim();
+        if (!text) { alert("請填寫待辦內容"); return; }
+        const assignee = ($("taskAssignee").value || "").trim();
+        ensureContent();
+        if (isNew) {
+          tripState.content.checklists.tasks.push({
+            id: data.id, text, assignee, done: false,
+          });
+          schedulePush({ action: "新增待辦", detail: text });
+        } else {
+          const it = tripState.content.checklists.tasks.find((x) => x.id === data.id);
+          if (it) {
+            it.text = text;
+            it.assignee = assignee;
+            schedulePush({ action: "編輯待辦", detail: text });
+          }
+        }
+        closeSheet();
+        renderPrep();
+      });
+      $("btnDelTask")?.addEventListener("click", () => {
+        if (!confirm(`確定刪除「${data.text || "此待辦"}」？`)) return;
+        tripState.content.checklists.tasks = tripState.content.checklists.tasks.filter((x) => x.id !== data.id);
+        schedulePush({ action: "刪除待辦", detail: data.text || "" });
+        closeSheet();
+        renderPrep();
+      });
+    }
+
     function renderPrep() {
       ensureContent();
       const lug = $("luggageList");
       lug.innerHTML = "";
+      const avatarNames = new Set();
       tripState.content.checklists.luggage.forEach((it) => {
+        normalizeLuggageItem(it);
+        luggageDoneByList(it).forEach((n) => avatarNames.add(n));
+      });
+      warmAvatarsForNames([...avatarNames]);
+
+      tripState.content.checklists.luggage.forEach((it) => {
+        normalizeLuggageItem(it);
+        const doneBy = luggageDoneByList(it);
+        const iReady = !!(accountName && doneBy.includes(accountName));
         const row = document.createElement("div");
         row.className = "check-item";
-        row.innerHTML = `<input type="checkbox" ${it.done ? "checked" : ""}/><div style="flex:1;"><strong></strong></div><button type="button" class="btn-danger btn-sm">刪</button>`;
+        const avatars = doneBy.slice(0, 6).map((n) =>
+          avatarSpanHtml(n, n === accountName ? "is-me" : "", n)
+        ).join("") + (doneBy.length > 6 ? `<span class="avatar" title="還有 ${doneBy.length - 6} 人">+${doneBy.length - 6}</span>` : "");
+        row.innerHTML = `
+          <input type="checkbox" ${iReady ? "checked" : ""} title="我已準備" />
+          <div class="check-body" title="點擊編輯"><strong></strong></div>
+          <div class="check-ready" title="${doneBy.length ? ("已準備：" + doneBy.join("、")) : "尚無人準備"}">${avatars}</div>
+          <button type="button" class="btn-icon-del" title="刪除" aria-label="刪除">${DEL_ICON_SVG}</button>
+        `;
         row.querySelector("strong").textContent = it.text;
+        row.querySelector(".check-body").addEventListener("click", () => openLuggageSheet(it));
         row.querySelector("input").addEventListener("change", (e) => {
-          it.done = e.target.checked;
-          schedulePush({ action: "更新行李清單", detail: it.text });
+          const me = accountName || "";
+          if (!me) {
+            e.target.checked = false;
+            alert("請先登入帳號");
+            return;
+          }
+          let list = luggageDoneByList(it);
+          if (e.target.checked) {
+            if (!list.includes(me)) list.push(me);
+          } else {
+            list = list.filter((n) => n !== me);
+          }
+          it.doneBy = list;
+          it.done = list.length > 0;
+          schedulePush({ action: e.target.checked ? "行李已準備" : "取消行李準備", detail: `${it.text}（${me}）` });
+          renderPrep();
         });
-        row.querySelector("button").addEventListener("click", () => {
+        row.querySelector(".btn-icon-del").addEventListener("click", () => {
+          if (!confirm(`確定刪除「${it.text}」？`)) return;
           tripState.content.checklists.luggage = tripState.content.checklists.luggage.filter((x) => x.id !== it.id);
           schedulePush({ action: "刪除行李項目", detail: it.text });
           renderPrep();
@@ -2835,14 +4756,16 @@
       tripState.content.checklists.tasks.forEach((it) => {
         const row = document.createElement("div");
         row.className = "check-item";
-        row.innerHTML = `<input type="checkbox" ${it.done ? "checked" : ""}/><div style="flex:1;"><strong></strong><div class="meta" style="font-size:.78rem;color:var(--muted);"></div></div><button type="button" class="btn-danger btn-sm">刪</button>`;
+        row.innerHTML = `<input type="checkbox" ${it.done ? "checked" : ""}/><div class="check-body" title="點擊編輯"><strong></strong><div class="meta" style="font-size:.78rem;color:var(--muted);"></div></div><button type="button" class="btn-icon-del" title="刪除" aria-label="刪除">${DEL_ICON_SVG}</button>`;
         row.querySelector("strong").textContent = it.text;
         row.querySelector(".meta").textContent = "負責：" + (it.assignee || "未指派");
+        row.querySelector(".check-body").addEventListener("click", () => openTaskSheet(it));
         row.querySelector("input").addEventListener("change", (e) => {
           it.done = e.target.checked;
           schedulePush({ action: "更新待辦", detail: it.text });
         });
-        row.querySelector("button").addEventListener("click", () => {
+        row.querySelector(".btn-icon-del").addEventListener("click", () => {
+          if (!confirm(`確定刪除「${it.text}」？`)) return;
           tripState.content.checklists.tasks = tripState.content.checklists.tasks.filter((x) => x.id !== it.id);
           schedulePush({ action: "刪除待辦", detail: it.text });
           renderPrep();
@@ -3003,7 +4926,19 @@
       }
       return avatar || "";
     }
+    function refreshHomeAvatar() {
+      const el = $("homeAvatar");
+      if (!el) return;
+      if (isAdmin) {
+        el.textContent = "A";
+        el.style.backgroundImage = "none";
+        el.classList.remove("has-photo");
+        return;
+      }
+      applyAvatarToEl(el, accountName || "?");
+    }
     function refreshAvatarViews() {
+      refreshHomeAvatar();
       if (!tripState) return;
       renderPresence();
       if (activeTab === "money") renderMoney();
@@ -3092,18 +5027,109 @@
       ensureContent();
       openSheet("行程設定", `
         <div class="field"><label>行程名稱</label><input id="tripSetTitle" maxlength="80" /></div>
+        <div class="field"><label>出發日</label><input id="tripSetStart" type="date" /></div>
+        <div class="field"><label>回程日</label><input id="tripSetEnd" type="date" /></div>
+        <p class="hint" id="tripSetDateHint"></p>
         <div class="field"><label>行程備註</label><textarea id="tripSetNotes" rows="4"></textarea></div>
       `, `<button type="button" class="btn-primary" id="btnSaveTripSettings">儲存</button>`);
       $("tripSetTitle").value = tripState.title || "";
       $("tripSetNotes").value = tripState.content.notes || "";
+      $("tripSetStart").value = tripState.content.tripStart || "";
+      $("tripSetEnd").value = tripState.content.tripEnd || "";
+      const sheetBody = $("sheetBody");
+      const wireDateField = (id) => {
+        const el = $(id);
+        if (!el) return;
+        el.addEventListener("focus", () => {
+          sheetBody?.classList.add("has-date-focus");
+          setTimeout(() => {
+            el.scrollIntoView({ block: "center", behavior: "smooth" });
+          }, 50);
+        });
+        el.addEventListener("blur", () => {
+          sheetBody?.classList.remove("has-date-focus");
+        });
+      };
+      wireDateField("tripSetStart");
+      wireDateField("tripSetEnd");
+      const updateDateHint = () => {
+        const start = $("tripSetStart").value || "";
+        const end = $("tripSetEnd").value || "";
+        const el = $("tripSetDateHint");
+        if (!el) return;
+        if (!start && !end) {
+          el.textContent = "設定起迄日後，會自動對應到各 Day，並顯示在景點列表上方。";
+          return;
+        }
+        if (start && end && end < start) {
+          el.textContent = "回程日不可早於出發日。";
+          return;
+        }
+        const n = start && end ? daysBetweenInclusive(start, end) : 0;
+        const curDays = (tripState.content.days || []).length;
+        if (!n) {
+          el.textContent = "請同時填寫出發日與回程日。";
+          return;
+        }
+        let msg = `共 ${n} 天：Day 1＝${formatDayDateShort(start)} … Day ${n}＝${formatDayDateShort(end)}`;
+        if (curDays < n) msg += `（將自動補齊 ${n - curDays} 天）`;
+        else if (curDays > n) msg += `（目前有 ${curDays} 天，多餘 ${curDays - n} 天會刪除）`;
+        el.textContent = msg;
+      };
+      $("tripSetStart")?.addEventListener("change", updateDateHint);
+      $("tripSetEnd")?.addEventListener("change", updateDateHint);
+      updateDateHint();
       $("btnSaveTripSettings").addEventListener("click", () => {
         if (!tripState || applyingRemote) return;
         ensureContent();
+        const start = ($("tripSetStart").value || "").trim();
+        const end = ($("tripSetEnd").value || "").trim();
+        if ((start && !end) || (!start && end)) {
+          alert("請同時填寫出發日與回程日，或兩欄都留空。");
+          return;
+        }
+        if (start && end && end < start) {
+          alert("回程日不可早於出發日。");
+          return;
+        }
+        const oldStart = String(tripState.content.tripStart || "");
+        const oldEnd = String(tripState.content.tripEnd || "");
         tripState.title = $("tripSetTitle").value.trim() || "未命名行程";
         tripState.content.notes = $("tripSetNotes").value;
+        tripState.content.tripStart = start;
+        tripState.content.tripEnd = end;
+        let sync = { ok: true, trimmed: 0, moved: 0 };
+        if (start && end) {
+          sync = syncDaysToTripRange({ trimExtra: true });
+          if (!sync.ok && sync.blocked) {
+            const need = daysBetweenInclusive(start, end);
+            const extraDays = Math.max(0, tripState.content.days.length - need);
+            const extraItems = tripState.content.days.slice(need).reduce(
+              (n, d) => n + ((d.items && d.items.length) || 0), 0
+            );
+            if (!confirm(
+              `回程縮短後會刪除多餘 ${extraDays} 天，其中有 ${extraItems} 個景點。\n` +
+              `確定後會把這些景點移到「想去清單」再刪除多餘 Day。`
+            )) {
+              tripState.content.tripStart = oldStart;
+              tripState.content.tripEnd = oldEnd;
+              return;
+            }
+            sync = syncDaysToTripRange({ forceTrimExtra: true });
+          }
+        }
+        if (activeDayIdx >= tripState.content.days.length) {
+          activeDayIdx = Math.max(0, tripState.content.days.length - 1);
+        }
         $("tripTitleHead").textContent = tripState.title;
-        schedulePush({ action: "修改行程設定", detail: tripState.title });
+        let detail = tripState.title + (start && end ? ` · ${start}～${end}` : "");
+        if (sync.trimmed) detail += ` · 刪除 ${sync.trimmed} 天`;
+        if (sync.moved) detail += ` · ${sync.moved} 景點移入想去`;
+        schedulePush({ action: "修改行程設定", detail });
         closeSheet();
+        renderDayTabs();
+        renderTimeline();
+        renderWishlist();
         showToast("行程設定已儲存");
       });
     }
@@ -3228,18 +5254,30 @@
       const hist = (tripState && tripState.history) || [];
       if (!hist.length) { empty?.classList.remove("hidden"); return; }
       empty?.classList.add("hidden");
-      hist.forEach((h) => {
+      hist.forEach((h, idx) => {
+        const canRestore = !!(h && h.snapshot && h.snapshot.content);
         const row = document.createElement("div");
-        row.className = "expense-card";
-        row.innerHTML = `<div><strong style="color:var(--accent-deep);"></strong> <span></span></div><div style="font-size:.75rem;color:var(--muted);margin-top:4px;"></div>`;
+        row.className = "expense-card history-card" + (canRestore ? " is-restorable" : "");
+        row.innerHTML =
+          `<div><strong style="color:var(--accent-deep);"></strong> <span></span></div>` +
+          `<div style="font-size:.75rem;color:var(--muted);margin-top:4px;"></div>` +
+          `<div class="history-hint"></div>`;
         row.querySelector("strong").textContent = h.user || "";
         row.querySelector("span").textContent = (h.action || "") + (h.detail ? " — " + h.detail : "");
         row.querySelectorAll("div")[1].textContent = h.at ? new Date(h.at).toLocaleString("zh-TW") : "";
+        row.querySelector(".history-hint").textContent = canRestore
+          ? "點擊還原到此狀態"
+          : "此筆無快照，無法還原";
+        if (canRestore) {
+          row.title = "點擊還原";
+          row.addEventListener("click", () => restoreFromHistoryEntry(h));
+        }
         list.appendChild(row);
       });
     }
     function openHistorySheet() {
       openSheet("修改歷史", `
+        <p class="hint" style="margin-top:0;">點選有快照的紀錄可還原；還原前會再次確認。</p>
         <div id="historyList"></div>
         <p class="empty hidden" id="historyEmpty">尚無紀錄</p>
       `);
@@ -3379,11 +5417,14 @@
 
     function setHomeTab(tab) {
       const mine = tab !== "join";
+      const wasMine = !$("homePaneMine")?.classList.contains("hidden");
+      const changed = mine !== wasMine;
       document.querySelectorAll("#homeTabs button").forEach((btn) => {
         btn.classList.toggle("is-active", btn.getAttribute("data-home-tab") === (mine ? "mine" : "join"));
       });
       $("homePaneMine")?.classList.toggle("hidden", !mine);
       $("homePaneJoin")?.classList.toggle("hidden", mine);
+      if (changed) scrollActiveViewToTop();
     }
 
     async function refreshAdminTripList() {
@@ -3427,16 +5468,29 @@
 
     async function createTrip() {
       const title = ($("newTripTitle").value || "").trim() || "未命名行程";
+      const tripStart = ($("newTripStart")?.value || "").trim();
+      const tripEnd = ($("newTripEnd")?.value || "").trim();
+      if ((tripStart && !tripEnd) || (!tripStart && tripEnd)) {
+        alert("請同時填寫出發日與回程日，或兩欄都留空。");
+        return;
+      }
+      if (tripStart && tripEnd && tripEnd < tripStart) {
+        alert("回程日不可早於出發日。");
+        return;
+      }
       let code = generateTripCode();
       for (let i = 0; i < 5; i++) {
         const snap = await get(tripRef(code));
         if (!snapExists(snap)) break;
         code = generateTripCode();
       }
-      await set(tripRef(code), emptyTripPayload(title, code, accountName));
+      await set(tripRef(code), emptyTripPayload(title, code, accountName, { tripStart, tripEnd }));
       rememberOwned(code);
       rememberJoined(code);
       $("newTripTitle").value = "";
+      if ($("newTripStart")) $("newTripStart").value = "";
+      if ($("newTripEnd")) $("newTripEnd").value = "";
+      if ($("newTripDateHint")) $("newTripDateHint").textContent = "可先填旅程日期，會自動建立對應的 Day。";
       showEditor(code);
     }
 
@@ -3566,11 +5620,14 @@
       $("travelCloudGate").setAttribute("aria-hidden", "true");
       isAdmin = isAdminSession();
       $("travelUserName").textContent = isAdmin ? "admin（管理員）" : (accountName || "使用者");
-      syncMyAvatarWithCloud().then(() => refreshAvatarViews()).catch(() => {});
+      syncMyAvatarWithCloud().then(() => refreshAvatarViews()).catch(() => refreshHomeAvatar());
+      refreshHomeAvatar();
       if (isAdmin) {
-        $("homePanel").classList.add("hidden");
+        $("homeUserArea")?.classList.add("hidden");
         $("adminPanel").classList.remove("hidden");
-        $("homeSub").textContent = "管理員模式";
+        const label = $("homeHelloLabel");
+        if (label) label.textContent = "模式";
+        refreshHomeAvatar();
         refreshAdminTripList();
       }
 
@@ -3585,6 +5642,26 @@
       });
       $("btnAdminRefresh")?.addEventListener("click", () => refreshAdminTripList());
       $("btnCreateTrip")?.addEventListener("click", () => createTrip().catch((e) => alert(e.message || e)));
+      const updateNewTripDateHint = () => {
+        const start = $("newTripStart")?.value || "";
+        const end = $("newTripEnd")?.value || "";
+        const el = $("newTripDateHint");
+        if (!el) return;
+        if (!start && !end) {
+          el.textContent = "可先填旅程日期，會自動建立對應的 Day。";
+          return;
+        }
+        if (start && end && end < start) {
+          el.textContent = "回程日不可早於出發日。";
+          return;
+        }
+        const n = start && end ? daysBetweenInclusive(start, end) : 0;
+        el.textContent = n
+          ? `將建立 ${n} 天：Day 1＝${formatDayDateShort(start)} … Day ${n}＝${formatDayDateShort(end)}`
+          : "請同時填寫出發日與回程日，或兩欄都留空。";
+      };
+      $("newTripStart")?.addEventListener("change", updateNewTripDateHint);
+      $("newTripEnd")?.addEventListener("change", updateNewTripDateHint);
       $("btnJoinTrip")?.addEventListener("click", () => joinTrip().catch((e) => alert(e.message || e)));
       $("homeTabs")?.addEventListener("click", (e) => {
         const btn = e.target.closest("button[data-home-tab]");
@@ -3614,51 +5691,55 @@
         clearLastTrip();
         showHome();
       });
-      $("btnAddPlace").addEventListener("click", () => {
-        if (!tripState || !tripState.content) return;
-        if (!tripState.content.days[activeDayIdx]) return;
-        const item = emptyItem({ time: "10:00", endTime: "11:00", place: "新景點" });
-        draftPlace = { item, isWish: false, dayIdx: activeDayIdx };
-        openPlaceSheet(item, activeDayIdx, false, "edit");
+      $("btnDelDay")?.addEventListener("click", () => removeActiveDay());
+      $("btnAddPlace").addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleAddPlanMenu();
       });
-      $("btnAddWish").addEventListener("click", () => {
-        ensureContent();
-        const item = emptyItem({ place: "想去的地方", time: "", endTime: "" });
-        draftPlace = { item, isWish: true, dayIdx: -1 };
-        openPlaceSheet(item, -1, true, "edit");
+      $("fabPlanScrim")?.addEventListener("click", () => closeAddPlanMenu());
+      $("choiceAddPlace")?.addEventListener("click", () => {
+        closeAddPlanMenu();
+        startAddPlace();
+      });
+      $("choiceAddWish")?.addEventListener("click", () => {
+        closeAddPlanMenu();
+        startAddWish();
       });
       $("bottomNav").addEventListener("click", (e) => {
         const btn = e.target.closest("button[data-tab]");
         if (btn) switchTab(btn.dataset.tab);
       });
       $("btnAddExpense").addEventListener("click", () => openExpenseSheet(null));
+      $("btnSetPublicFund")?.addEventListener("click", openPublicFundSheet);
       $("btnOpenFx").addEventListener("click", openFxSheet);
+      $("moneySeg")?.addEventListener("click", (e) => {
+        const b = e.target.closest("button[data-money]");
+        if (!b) return;
+        document.querySelectorAll("#moneySeg button").forEach((x) => x.classList.toggle("is-active", x === b));
+        $("moneyPaneList")?.classList.toggle("hidden", b.dataset.money !== "list");
+        $("moneyPaneSettle")?.classList.toggle("hidden", b.dataset.money !== "settle");
+      });
+      $("receiptViewerClose")?.addEventListener("click", closeReceiptViewer);
+      $("receiptViewer")?.addEventListener("click", (e) => {
+        if (e.target === $("receiptViewer")) closeReceiptViewer();
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeReceiptViewer();
+      });
       $("prepSeg").addEventListener("click", (e) => {
         const b = e.target.closest("button[data-prep]");
         if (!b) return;
+        const next = b.dataset.prep;
+        const cur = document.querySelector("#prepSeg button.is-active")?.dataset?.prep;
         document.querySelectorAll("#prepSeg button").forEach((x) => x.classList.toggle("is-active", x === b));
-        $("prepLuggage").classList.toggle("hidden", b.dataset.prep !== "luggage");
-        $("prepTasks").classList.toggle("hidden", b.dataset.prep !== "tasks");
-        $("prepDocs").classList.toggle("hidden", b.dataset.prep !== "docs");
+        $("prepLuggage").classList.toggle("hidden", next !== "luggage");
+        $("prepTasks").classList.toggle("hidden", next !== "tasks");
+        $("prepDocs").classList.toggle("hidden", next !== "docs");
+        if (next !== cur) scrollActiveViewToTop();
       });
-      $("btnAddLuggage").addEventListener("click", () => {
-        const text = prompt("行李項目");
-        if (!text) return;
-        ensureContent();
-        tripState.content.checklists.luggage.push({ id: uid(), text: text.trim(), done: false });
-        schedulePush({ action: "新增行李項目", detail: text });
-        renderPrep();
-      });
-      $("btnAddTask").addEventListener("click", () => {
-        ensureContent();
-        const text = prompt("待辦內容");
-        if (!text) return;
-        const members = Object.keys(tripState.members || {});
-        const assignee = prompt("指派給（" + members.join("/") + "）", accountName) || accountName;
-        tripState.content.checklists.tasks.push({ id: uid(), text: text.trim(), assignee, done: false });
-        schedulePush({ action: "新增待辦", detail: text });
-        renderPrep();
-      });
+      $("btnAddLuggage").addEventListener("click", () => openLuggageSheet(null));
+      $("btnAddTask").addEventListener("click", () => openTaskSheet(null));
+      $("btnAddDoc")?.addEventListener("click", () => $("docFileInput")?.click());
       $("docFileInput").addEventListener("change", async (e) => {
         const file = e.target.files && e.target.files[0];
         e.target.value = "";
@@ -3679,6 +5760,25 @@
       $("btnMoreProfile")?.addEventListener("click", () => openProfileSheet());
       $("btnMoreTripSettings")?.addEventListener("click", () => openTripSettingsSheet());
       $("btnMoreHistory")?.addEventListener("click", () => openHistorySheet());
+      $("btnMoreExport")?.addEventListener("click", () => {
+        if (!tripState) return;
+        exportTripJson();
+      });
+      $("btnMoreImport")?.addEventListener("click", () => {
+        if (!tripState) return;
+        if (!confirm("匯入會覆蓋目前的行程與準備清單（記帳、行程碼、成員會保留）。確定繼續？")) return;
+        $("importTripFile")?.click();
+      });
+      $("importTripFile")?.addEventListener("change", async (e) => {
+        const file = e.target.files && e.target.files[0];
+        e.target.value = "";
+        if (!file) return;
+        try {
+          await importTripJsonFile(file);
+        } catch (err) {
+          alert(err.message || String(err));
+        }
+      });
 
       $("sheetClose").addEventListener("click", closeSheet);
       $("sheetBackdrop").addEventListener("click", closeSheet);
