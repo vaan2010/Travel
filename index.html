@@ -104,7 +104,8 @@
       margin-bottom: 8px; letter-spacing: .02em;
     }
     .field input, .field textarea, .field select {
-      width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: #f7fbfc;
+      width: 100%; max-width: 100%; display: block;
+      padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: #f7fbfc;
     }
     .field textarea { line-height: 1.45; resize: vertical; }
     .btn-primary {
@@ -347,9 +348,10 @@
       -webkit-appearance: none; appearance: none;
     }
     .field input[type="date"] {
-      width: 100%; min-width: 0; box-sizing: border-box;
+      width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box;
       min-height: 44px; padding: 12px 14px;
       font-size: 1rem; font-variant-numeric: tabular-nums;
+      -webkit-appearance: none; appearance: none; display: block;
     }
     .field input[type="file"] { padding: 10px 12px; }
     .hint { font-size: .8rem; color: var(--muted); line-height: 1.4; margin: 0 0 16px; }
