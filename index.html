@@ -3904,7 +3904,8 @@
         const amt = Number(ex.amountTwd) || 0;
         const payer = ex.payer || "";
         if (payer) paidBy[payer] = (paidBy[payer] || 0) + amt;
-        const split = (ex.splitWith || []).filter(Boolean);
+        let split = (ex.splitWith || []).filter(Boolean);
+        if (!split.length && payer) split = [payer]; // 未勾選分攤人視為個人支出
         if (!split.length) return;
         const each = amt / split.length;
         if (payer) net[payer] = (net[payer] || 0) + amt;
@@ -4113,7 +4114,8 @@
         if (ex.payer === me && amt) {
           prepaidByCat[label] = (prepaidByCat[label] || 0) + amt;
         }
-        const split = (ex.splitWith || []).filter(Boolean);
+        let split = (ex.splitWith || []).filter(Boolean);
+        if (!split.length && ex.payer) split = [ex.payer];
         if (split.includes(me) && split.length) {
           afterByCat[label] = (afterByCat[label] || 0) + amt / split.length;
         }
@@ -4224,9 +4226,20 @@
       $("btnPersonalCharts")?.addEventListener("click", openPersonalChartsSheet);
     }
 
+    function getVisibleExpenses() {
+      const me = accountName || "";
+      return (tripState.content.expenses || []).filter((ex) => {
+        if (isPublicFundExpense(ex)) return true;
+        const split = (ex.splitWith || []).filter(Boolean);
+        const isPersonal = split.length === 0 || (split.length === 1 && split[0] === ex.payer);
+        if (isPersonal && ex.payer !== me) return false;
+        return true;
+      });
+    }
+
     function renderMoney() {
       ensureContent();
-      const expenses = tripState.content.expenses || [];
+      const expenses = getVisibleExpenses();
       const avatarNames = new Set();
       const total = expenses.reduce((s, ex) => s + (Number(ex.amountTwd) || 0), 0);
       const people = new Set();
@@ -4269,7 +4282,11 @@
         const card = document.createElement("button");
         card.type = "button";
         card.className = "ex-card";
-        const split = (ex.splitWith || []).filter(Boolean);
+        const isPublic = isPublicFundExpense(ex);
+        let split = (ex.splitWith || []).filter(Boolean);
+        if (!split.length && ex.payer) split = [ex.payer];
+        const isPersonal = !isPublic && split.length === 1 && split[0] === ex.payer;
+        
         const splitAvatars = split.slice(0, 4).map((p) =>
           avatarSpanHtml(p, p === accountName ? "is-me" : "", p)
         ).join("") + (split.length > 4 ? `<span class="avatar" title="還有 ${split.length - 4} 人">+${split.length - 4}</span>` : "");
@@ -4279,7 +4296,6 @@
           : `${ex.currency} ${Number(ex.amount || 0).toLocaleString("zh-TW")}`;
         const hasReceipt = !!ex.receiptImage;
         const cat = normalizeExpenseCat(ex.category);
-        const isPublic = isPublicFundExpense(ex);
 
         card.innerHTML = `
           <div class="ex-avatar">${moneyInitial(ex.payer)}</div>
@@ -4287,7 +4303,7 @@
             <div class="ex-title"></div>
             <div class="ex-meta">
               <span class="ex-chip is-cat${isPublic ? " is-public" : ""}">${expenseCatLabel(cat)}</span>
-              <span class="ex-chip">${isPublic ? "不進算帳" : `分攤 ${split.length || 0}`}</span>
+              <span class="ex-chip">${isPublic ? "不進算帳" : (isPersonal ? "個人支出" : `分攤 ${split.length}`)}</span>
               ${hasReceipt ? `<span class="ex-receipt-badge">收據</span>` : ""}
               ${isPublic ? "" : `<div class="ex-split">${splitAvatars}</div>`}
             </div>
