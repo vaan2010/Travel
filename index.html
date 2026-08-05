@@ -72,18 +72,23 @@
       border-radius: 20px; padding: 24px 20px; position: relative;
       box-shadow: 0 16px 40px rgba(22,48,56,.1); border: 1px solid var(--line);
       margin: auto 0;
+      overflow: hidden;
+    }
+    .gate-panel::before {
+      content: "";
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 240px; height: 240px;
+      background: url('./icon-192.png') no-repeat center;
+      background-size: contain;
+      opacity: 0.06;
+      pointer-events: none;
+      z-index: 0;
     }
     .gate-brand {
-      font-family: var(--display); font-size: 2rem; text-align: center; margin: 0; color: var(--accent-deep);
-    }
-    .gate-brand-row {
-      display: flex; align-items: center; justify-content: center; gap: 10px;
-      margin: 0 0 4px;
-    }
-    .gate-brand-logo {
-      width: 44px; height: 44px; border-radius: 12px;
-      object-fit: cover; flex-shrink: 0;
-      box-shadow: 0 4px 12px rgba(22,48,56,.12);
+      font-family: var(--display); font-size: 2rem; text-align: center; margin: 0 0 4px; color: var(--accent-deep);
+      position: relative; z-index: 1;
     }
     .gate-sub { text-align: center; color: var(--muted); font-size: .88rem; margin: 0 0 18px; }
     .gate-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
@@ -215,26 +220,12 @@
       justify-content: space-between;
       gap: 12px;
     }
-    .home-brand-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin: 0 0 14px;
-    }
-    .home-brand-logo {
-      width: clamp(44px, 11vw, 52px);
-      height: clamp(44px, 11vw, 52px);
-      border-radius: 14px;
-      object-fit: cover;
-      flex-shrink: 0;
-      box-shadow: 0 6px 16px rgba(22,48,56,.14);
-    }
     .home-brand {
       font-family: var(--display);
       font-size: clamp(2.05rem, 9vw, 2.55rem);
       font-weight: 700;
       line-height: 1.05;
-      margin: 0;
+      margin: 0 0 14px;
       color: var(--accent-deep);
       letter-spacing: -.02em;
     }
@@ -357,7 +348,7 @@
     }
     .field input[type="date"] {
       width: 100%; min-width: 0; box-sizing: border-box;
-      min-height: 44px; padding: 10px 12px;
+      min-height: 44px; padding: 12px 14px;
       font-size: 1rem; font-variant-numeric: tabular-nums;
     }
     .field input[type="file"] { padding: 10px 12px; }
@@ -1278,10 +1269,7 @@
   <div id="travelCloudGate" aria-hidden="true">
     <div class="gate-panel" id="travelGatePanel">
       <div class="gate-loading"><div class="spinner"></div><span>處理中…</span></div>
-      <div class="gate-brand-row">
-        <img class="gate-brand-logo" src="./icon-192.png" alt="" width="44" height="44" />
-        <h1 class="gate-brand">旅跡</h1>
-      </div>
+      <h1 class="gate-brand">旅跡</h1>
       <p class="gate-sub" style="display:none;"></p>
       <div class="gate-tabs">
         <button type="button" class="is-active" id="travelTabLogin">登入</button>
@@ -1322,10 +1310,7 @@
       <header class="home-hero">
         <div class="home-hero-top">
           <div class="home-brand-block">
-            <div class="home-brand-row">
-              <img class="home-brand-logo" src="./icon-192.png" alt="" width="52" height="52" />
-              <h1 class="home-brand">旅跡</h1>
-            </div>
+            <h1 class="home-brand">旅跡</h1>
             <div class="home-hello" id="homeHello">
               <span class="avatar home-avatar is-me" id="homeAvatar" aria-hidden="true">?</span>
               <div class="home-hello-text" id="homeHelloText">
