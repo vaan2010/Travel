@@ -3516,7 +3516,10 @@
         "編輯景點",
         `
         <div class="field"><label>景點圖片（卡片背景）</label>
-          <input id="fCover" type="file" accept="image/*" />
+          <label class="btn-ghost btn-sm" style="display:block;text-align:center;margin:0 0 8px;">
+            選擇圖片
+            <input id="fCover" type="file" accept="image/*" class="sr-only" />
+          </label>
           <div class="cover-preview${pendingCover ? " has-img" : ""}" id="coverPreview">${pendingCover ? "" : "尚未上傳"}</div>
           <button type="button" class="btn-ghost btn-sm" id="btnClearCover" style="margin-top:8px;">移除圖片</button>
         </div>
@@ -3534,16 +3537,17 @@
           </div>
         </div>
         <div class="field"><label>地址</label><input id="fAddr" value="" placeholder="用於導航與交通估算"/></div>
-        <div class="field"><label>營業時間</label><input id="fHours" value=""/></div>
+        <div class="field"><label>營業時間（起）</label><input id="fHoursStart" type="time" /></div>
+        <div class="field"><label>營業時間（迄）</label><input id="fHoursEnd" type="time" /></div>
         <div class="row">
-          <div class="field"><label>門票價格</label><input id="fTicket" value=""/></div>
           <div class="field"><label>門票狀態</label>
             <select id="fTicketSt">
               <option value="none" ${item.ticketStatus==="none"?"selected":""}>無需門票</option>
-              <option value="unbought" ${item.ticketStatus==="unbought"?"selected":""}>未買</option>
-              <option value="bought" ${item.ticketStatus==="bought"?"selected":""}>已買</option>
+              <option value="unbought" ${item.ticketStatus==="unbought"?"selected":""}>需要門票（未買）</option>
+              <option value="bought" ${item.ticketStatus==="bought"?"selected":""}>需要門票（已買）</option>
             </select>
           </div>
+          <div class="field" id="fTicketPriceWrap" style="display:none;"><label>門票價格</label><input id="fTicket" value="${item.ticketPrice || ""}"/></div>
         </div>
         <div class="field"><label>標籤</label><div>${tagOpts}</div></div>
         <div class="field"><label>共同備註</label><textarea id="fNote" rows="2"></textarea></div>
@@ -3557,8 +3561,6 @@
       );
       $("fPlace").value = item.place || "";
       $("fAddr").value = item.address || "";
-      $("fHours").value = item.hours || "";
-      $("fTicket").value = item.ticketPrice || "";
       $("fNote").value = item.note || "";
       $("fLinks").value = links;
       const preview = $("coverPreview");
@@ -3596,17 +3598,34 @@
         syncDurationLabel();
       });
 
+      const syncTicketPriceWrap = () => {
+        const wrap = $("fTicketPriceWrap");
+        if (!wrap) return;
+        if ($("fTicketSt").value === "none") {
+          wrap.style.display = "none";
+        } else {
+          wrap.style.display = "block";
+        }
+      };
+      syncTicketPriceWrap();
+      $("fTicketSt")?.addEventListener("change", syncTicketPriceWrap);
+
+      const [hStart, hEnd] = (item.hours || "").split(" - ");
+      resetTimeInput($("fHoursStart"), hStart || "");
+      resetTimeInput($("fHoursEnd"), hEnd || "");
+
       $("fCover")?.addEventListener("change", async (e) => {
         const file = e.target.files && e.target.files[0];
-        e.target.value = "";
         if (!file) return;
         try {
           pendingCover = await cropImageToCover(file);
           preview.classList.add("has-img");
           preview.textContent = "";
           preview.style.backgroundImage = `url("${pendingCover}")`;
+          e.target.value = ""; // 清空 input 以便下次能選同一個檔案
         } catch (err) {
           alert(err.message || "圖片處理失敗");
+          e.target.value = "";
         }
       });
       $("btnClearCover")?.addEventListener("click", () => {
@@ -3632,6 +3651,13 @@
         });
         const timeVal = String($("fTime")?.value || "").trim();
         const endVal = String($("fEndTime")?.value || "").trim();
+        const hStartVal = String($("fHoursStart")?.value || "").trim();
+        const hEndVal = String($("fHoursEnd")?.value || "").trim();
+        let hoursStr = "";
+        if (hStartVal && hEndVal) hoursStr = `${hStartVal} - ${hEndVal}`;
+        else if (hStartVal) hoursStr = hStartVal;
+        else if (hEndVal) hoursStr = hEndVal;
+
         Object.assign(target, {
           time: timeVal,
           endTime: endVal,
@@ -3640,8 +3666,8 @@
           cost: Number($("fCost").value) || 0,
           currency: $("fCur").value,
           address: $("fAddr").value.trim(),
-          hours: $("fHours").value.trim(),
-          ticketPrice: $("fTicket").value.trim(),
+          hours: hoursStr,
+          ticketPrice: $("fTicketSt").value === "none" ? "" : $("fTicket").value.trim(),
           ticketStatus: $("fTicketSt").value,
           note: $("fNote").value,
           links: linkLines,
@@ -3693,26 +3719,106 @@
         renderWishlist();
       });
       $("btnToDay")?.addEventListener("click", () => {
+        if (!confirm("排入此日將會自動儲存目前的變更，確定嗎？")) return;
         ensureContent();
         let target = findPlaceById(item.id) || item;
+        
+        // 儲存邏輯
+        const tags = [...document.querySelectorAll("#sheetBody [data-tag]:checked")].map((el) => el.getAttribute("data-tag"));
+        const linkLines = ($("fLinks").value || "").split("\n").map((l) => l.trim()).filter(Boolean).map((l) => {
+          const [title, url] = l.split("|");
+          return { title: (title || "").trim(), url: (url || title || "").trim() };
+        });
+        const timeVal = String($("fTime")?.value || "").trim();
+        const endVal = String($("fEndTime")?.value || "").trim();
+        const hStartVal = String($("fHoursStart")?.value || "").trim();
+        const hEndVal = String($("fHoursEnd")?.value || "").trim();
+        let hoursStr = "";
+        if (hStartVal && hEndVal) hoursStr = `${hStartVal} - ${hEndVal}`;
+        else if (hStartVal) hoursStr = hStartVal;
+        else if (hEndVal) hoursStr = hEndVal;
+
+        Object.assign(target, {
+          time: timeVal,
+          endTime: endVal,
+          place: $("fPlace").value.trim(),
+          durationMin: timeVal && endVal ? calcDurationMin(timeVal, endVal) : 0,
+          cost: Number($("fCost").value) || 0,
+          currency: $("fCur").value,
+          address: $("fAddr").value.trim(),
+          hours: hoursStr,
+          ticketPrice: $("fTicketSt").value === "none" ? "" : $("fTicket").value.trim(),
+          ticketStatus: $("fTicketSt").value,
+          note: $("fNote").value,
+          links: linkLines,
+          tags: tags.length ? tags : ["other"],
+          coverImage: pendingCover || "",
+        });
+        if (!timeVal) target.time = "";
+        if (!endVal) target.endTime = "";
+        if (!timeVal || !endVal) target.durationMin = 0;
+        delete target.lat;
+        delete target.lng;
+
         tripState.content.wishlist = tripState.content.wishlist.filter((x) => x.id !== item.id);
         if (tripState.content.days[activeDayIdx]) {
           tripState.content.days[activeDayIdx].items.push(target);
         }
         const dayLabel = tripState.content.days[activeDayIdx]?.label || ("Day " + (activeDayIdx + 1));
         schedulePush({ action: "排入日程", detail: `${target.place || ""} → ${dayLabel}` });
+        draftPlace = null;
         closeSheet();
         renderTimeline();
         renderWishlist();
       });
       $("btnToWish")?.addEventListener("click", () => {
+        if (!confirm("移入想去清單將會自動儲存目前的變更，確定嗎？")) return;
         ensureContent();
         let target = findPlaceById(item.id) || item;
+
+        // 儲存邏輯
+        const tags = [...document.querySelectorAll("#sheetBody [data-tag]:checked")].map((el) => el.getAttribute("data-tag"));
+        const linkLines = ($("fLinks").value || "").split("\n").map((l) => l.trim()).filter(Boolean).map((l) => {
+          const [title, url] = l.split("|");
+          return { title: (title || "").trim(), url: (url || title || "").trim() };
+        });
+        const timeVal = String($("fTime")?.value || "").trim();
+        const endVal = String($("fEndTime")?.value || "").trim();
+        const hStartVal = String($("fHoursStart")?.value || "").trim();
+        const hEndVal = String($("fHoursEnd")?.value || "").trim();
+        let hoursStr = "";
+        if (hStartVal && hEndVal) hoursStr = `${hStartVal} - ${hEndVal}`;
+        else if (hStartVal) hoursStr = hStartVal;
+        else if (hEndVal) hoursStr = hEndVal;
+
+        Object.assign(target, {
+          time: timeVal,
+          endTime: endVal,
+          place: $("fPlace").value.trim(),
+          durationMin: timeVal && endVal ? calcDurationMin(timeVal, endVal) : 0,
+          cost: Number($("fCost").value) || 0,
+          currency: $("fCur").value,
+          address: $("fAddr").value.trim(),
+          hours: hoursStr,
+          ticketPrice: $("fTicketSt").value === "none" ? "" : $("fTicket").value.trim(),
+          ticketStatus: $("fTicketSt").value,
+          note: $("fNote").value,
+          links: linkLines,
+          tags: tags.length ? tags : ["other"],
+          coverImage: pendingCover || "",
+        });
+        if (!timeVal) target.time = "";
+        if (!endVal) target.endTime = "";
+        if (!timeVal || !endVal) target.durationMin = 0;
+        delete target.lat;
+        delete target.lng;
+
         tripState.content.days.forEach(d => {
           d.items = (d.items || []).filter(x => x.id !== item.id);
         });
         tripState.content.wishlist.push(target);
         schedulePush({ action: "移入想去清單", detail: target.place || "" });
+        draftPlace = null;
         closeSheet();
         renderTimeline();
         renderWishlist();
