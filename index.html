@@ -1627,6 +1627,7 @@
     const LS_ADMIN = "travel_rtdb_is_admin";
     const LS_LAST_TRIP = "travel_last_trip_code";
     const LS_TRIP_CACHE = "travel_last_trip_cache";
+    const LS_FX_AUTO = "travel_fx_auto_online";
     const ADMIN_USER = "admin";
     const ADMIN_PASS = "admin";
     const PUSH_DEBOUNCE_MS = 550;
@@ -3949,7 +3950,7 @@
       if (total <= 0 && spent <= 0) {
         el.innerHTML = `
           <h3>公費</h3>
-          <div class="public-fund-row"><span>尚未加入</span><strong>—</strong></div>
+          <div class="public-fund-row"><span>尚未加入</span><strong>0</strong></div>
           <p class="personal-hint" style="margin-top:6px;">點「加入公費」可多次加錢疊加；用「公費」記帳會從餘額扣除，且不進智慧算帳。</p>
         `;
         return;
@@ -4404,6 +4405,14 @@
     function openFxSheet() {
       ensureContent();
       const fx = { ...DEFAULT_FX, ...(tripState.content.fx || {}) };
+      const fxAutoKey = accountSerial
+        ? `${LS_FX_AUTO}:${accountSerial}:${currentTripCode || "global"}`
+        : `${LS_FX_AUTO}:${currentTripCode || "global"}`;
+      let fxAutoOnline = localStorage.getItem(fxAutoKey) !== "0";
+      const setFxAutoOnline = (v) => {
+        fxAutoOnline = !!v;
+        localStorage.setItem(fxAutoKey, fxAutoOnline ? "1" : "0");
+      };
       const rows = FX_META.map(({ code, name }) => `
         <div class="fx-row">
           <div class="fx-code">${code}</div>
@@ -4421,6 +4430,7 @@
         `
         <div class="fx-head">
           <div class="fx-head-actions">
+            <button type="button" class="btn-ghost" id="btnFxAutoToggle">${fxAutoOnline ? "固定" : "即時更新"}</button>
             <button type="button" class="btn-primary" id="btnFetchFx">更新網路匯率</button>
           </div>
           <div class="fx-updated" id="fxUpdatedAt"></div>
@@ -4473,6 +4483,20 @@
       };
 
       $("btnFetchFx")?.addEventListener("click", () => applyOnline());
+      $("btnFxAutoToggle")?.addEventListener("click", async () => {
+        if (fxAutoOnline) {
+          setFxAutoOnline(false);
+          $("btnFxAutoToggle") && ($("btnFxAutoToggle").textContent = "即時更新");
+          setStatus("匯率已固定（不再即時更新）");
+          showToast("匯率已固定");
+          return;
+        }
+        const ok = confirm("要改成即時更新嗎？");
+        if (!ok) return;
+        setFxAutoOnline(true);
+        $("btnFxAutoToggle") && ($("btnFxAutoToggle").textContent = "固定");
+        await applyOnline();
+      });
       $("btnSaveFxSheet").addEventListener("click", () => {
         ensureContent();
         const next = { ...tripState.content.fx, TWD: 1 };
@@ -4487,8 +4511,9 @@
         showToast("匯率已儲存");
       });
 
-      // 開啟時自動抓一次最新匯率
-      applyOnline();
+      // 開啟時自動抓一次最新匯率（除非已固定）
+      if (fxAutoOnline) applyOnline();
+      else setStatus("匯率已固定（不再即時更新）");
     }
 
     function renderSettle() {
