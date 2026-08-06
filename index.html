@@ -30,7 +30,7 @@
       --danger: #b42318;
       --warn: #b45309;
       --ok: #157a3a;
-      --nav-h: 64px;
+      --nav-h: 72px;
       --safe-b: env(safe-area-inset-bottom, 0px);
       --safe-t: env(safe-area-inset-top, 0px);
       --radius: 16px;
@@ -426,11 +426,18 @@
       border-top: 1px solid var(--line); z-index: 50;
     }
     .bottom-nav button {
-      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-      font-size: .68rem; font-weight: 600; color: var(--muted); padding: 6px 2px 4px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 4px; font-size: .8rem; font-weight: 700; color: var(--muted);
+      padding: 8px 4px 6px; line-height: 1.1; text-align: center;
     }
     .bottom-nav button.is-active { color: var(--accent-deep); }
-    .bottom-nav svg { width: 22px; height: 22px; }
+    .bottom-nav svg {
+      width: 26px; height: 26px; display: block; flex-shrink: 0;
+      margin: 0 auto;
+    }
+    .bottom-nav button > span {
+      display: block; width: 100%; text-align: center;
+    }
 
     /* Day tabs */
     .day-tabs {
@@ -879,6 +886,32 @@
       margin: 0 12px 10px 0 !important; cursor: pointer;
     }
     .check-label input { width: 18px; height: 18px; margin: 0; flex-shrink: 0; }
+    .place-sec-title {
+      margin: 4px 0 10px; font-size: .72rem; font-weight: 800;
+      color: var(--accent-deep); letter-spacing: .04em;
+    }
+    .place-more {
+      margin: 8px 0 0; border: 1px solid var(--line); border-radius: 14px;
+      background: #f7fbfb; overflow: hidden;
+    }
+    .place-more > summary {
+      list-style: none; cursor: pointer; padding: 12px 14px;
+      font-weight: 700; font-size: .9rem; color: var(--ink);
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    }
+    .place-more > summary::-webkit-details-marker { display: none; }
+    .place-more > summary::after { content: "›"; color: var(--muted); font-size: 1.1rem; transform: rotate(90deg); }
+    .place-more[open] > summary::after { transform: rotate(-90deg); }
+    .place-more-body { padding: 0 14px 14px; }
+    .place-link-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+    .place-link-row {
+      display: flex; flex-direction: column; gap: 6px;
+      padding: 10px; border-radius: 12px; border: 1px solid var(--line); background: #fff;
+    }
+    .place-link-row .row { margin-bottom: 0; }
+    .place-link-row input { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: #f7fbfc; }
+    .place-addr-actions { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+    .place-addr-actions .btn-ghost { margin: 0 !important; flex: 1; min-width: 120px; }
     .cur-seg {
       display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
     }
@@ -953,6 +986,20 @@
       width: 100%; text-align: left; box-sizing: border-box;
     }
     .ex-card:active { transform: scale(.985); border-color: var(--accent); }
+    .ex-card.is-settled { opacity: .72; background: #f7fbfb; }
+    .ex-card.is-settled .ex-twd { color: var(--muted); text-decoration: line-through; }
+    .ex-settled-btn {
+      flex-shrink: 0; width: 32px; height: 32px; margin-top: 4px;
+      border-radius: 50%; border: 1.5px solid var(--line);
+      background: #fff; color: var(--muted);
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 0; cursor: pointer;
+    }
+    .ex-settled-btn svg { width: 16px; height: 16px; display: block; pointer-events: none; }
+    .ex-settled-btn.is-on {
+      border-color: #1f7a55; background: #eef8f4; color: #1f7a55;
+    }
+    .ex-settled-btn:active { transform: scale(.92); }
     .ex-avatar {
       width: 40px; height: 40px; border-radius: 14px; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
@@ -1398,7 +1445,9 @@
     <!-- TRIP -->
     <div id="viewTrip" class="hidden">
       <header class="topbar">
-        <button type="button" class="btn-icon" id="btnBackHome">←</button>
+        <button type="button" class="btn-icon" id="btnBackHome" title="返回" aria-label="返回">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M14.7 5.3a1 1 0 0 1 0 1.4L9.42 12l5.3 5.3a1 1 0 1 1-1.42 1.4l-6-6a1 1 0 0 1 0-1.4l6-6a1 1 0 0 1 1.42 0z"/></svg>
+        </button>
         <div class="topbar-center">
           <h1 id="tripTitleHead">行程</h1>
           <div class="topbar-sub">
@@ -1407,7 +1456,7 @@
             <div class="avatars" id="presenceRow"></div>
           </div>
         </div>
-        <button type="button" class="btn-icon" id="btnCopyCode" title="複製行程碼" aria-label="複製行程碼" style="font-size:1.2rem;">⎘</button>
+        <span class="btn-icon" style="visibility:hidden;pointer-events:none;" aria-hidden="true"></span>
       </header>
       <div class="main" id="tripMain">
         <!-- Plan -->
@@ -1545,10 +1594,10 @@
       </div>
 
       <nav class="bottom-nav" id="bottomNav">
-        <button type="button" class="is-active" data-tab="plan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>行程</button>
-        <button type="button" data-tab="money"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/></svg>記帳</button>
-        <button type="button" data-tab="prep"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>準備</button>
-        <button type="button" data-tab="more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>更多</button>
+        <button type="button" class="is-active" data-tab="plan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span>行程</span></button>
+        <button type="button" data-tab="money"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/></svg><span>記帳</span></button>
+        <button type="button" data-tab="prep"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg><span>準備</span></button>
+        <button type="button" data-tab="more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/><circle cx="5" cy="12" r="1.2"/></svg><span>更多</span></button>
       </nav>
     </div>
   </div>
@@ -1671,6 +1720,7 @@
     let presenceTimer = null;
     let lockHeartbeat = null;
     let sheetMode = null;
+    let sheetBeforeClose = null; // () => true 允許關閉；false 則取消
     let pendingRegAvatarData = "";
     let sendingRegCode = false;
     const avatarCacheByName = {};
@@ -2703,6 +2753,7 @@
 
     /* ===== Sheets ===== */
     function openSheet(title, bodyHtml, actionsHtml, mode) {
+      sheetBeforeClose = null;
       sheetMode = mode || null;
       $("sheetTitle").textContent = title;
       const body = $("sheetBody");
@@ -2715,6 +2766,7 @@
       requestAnimationFrame(() => { body.scrollTop = 0; });
     }
     function closeSheet() {
+      sheetBeforeClose = null;
       $("sheetBackdrop").classList.remove("is-open");
       $("sheet").classList.remove("is-open");
       $("sheetBody")?.classList.remove("has-date-focus");
@@ -2726,6 +2778,16 @@
         renderTimeline();
         renderWishlist();
       }
+    }
+    function requestCloseSheet() {
+      if (typeof sheetBeforeClose === "function") {
+        try {
+          if (!sheetBeforeClose()) return;
+        } catch {
+          return;
+        }
+      }
+      closeSheet();
     }
 
     /* ===== Render ===== */
@@ -3407,6 +3469,45 @@
       return "無需門票";
     }
 
+
+    function parseHoursFields(hours) {
+      const s = String(hours || "").trim();
+      if (!s) return { start: "", end: "", note: "" };
+      const m = s.match(/^(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})(?:\s*[·•]\s*(.*))?$/);
+      if (m) return { start: m[1], end: m[2], note: (m[3] || "").trim() };
+      const m2 = s.match(/^(\d{1,2}:\d{2})(?:\s*[·•]\s*(.*))?$/);
+      if (m2 && !s.includes("-")) return { start: m2[1], end: "", note: (m2[2] || "").trim() };
+      return { start: "", end: "", note: s };
+    }
+    function buildHoursStr(start, end, note) {
+      let range = "";
+      const a = String(start || "").trim();
+      const b = String(end || "").trim();
+      const n = String(note || "").trim();
+      if (a && b) range = `${a} - ${b}`;
+      else if (a) range = a;
+      else if (b) range = b;
+      if (range && n) return `${range} · ${n}`;
+      return range || n;
+    }
+    function extractAddressFromMapsText(text) {
+      const raw = String(text || "").trim();
+      if (!raw) return "";
+      const looksMaps = /maps\.app\.goo\.gl|goo\.gl\/maps|google\.[^\s/]+\/maps|maps\.google\./i.test(raw);
+      if (!looksMaps) return raw;
+      try {
+        const href = /^https?:\/\//i.test(raw) ? raw : ("https://" + raw);
+        const url = new URL(href);
+        const q = url.searchParams.get("q") || url.searchParams.get("query");
+        if (q) return decodeURIComponent(String(q).replace(/\+/g, " ")).trim();
+        const place = url.pathname.match(/\/place\/([^/]+)/);
+        if (place) return decodeURIComponent(place[1].replace(/\+/g, " ")).trim();
+        const search = url.pathname.match(/\/search\/([^/]+)/);
+        if (search) return decodeURIComponent(search[1].replace(/\+/g, " ")).trim();
+      } catch {}
+      return raw;
+    }
+
     function startAddPlace() {
       if (!tripState || !tripState.content) return;
       if (!tripState.content.days[activeDayIdx]) return;
@@ -3489,7 +3590,7 @@
         list.appendChild(infoRow("標籤", tags, true));
         const stayMins = resolveItemDuration(item);
         if (stayMins > 0) list.appendChild(infoRow("停留", formatDurationLabel(stayMins)));
-        list.appendChild(infoRow("花費", costStr));
+        list.appendChild(infoRow("其他花費", costStr));
         list.appendChild(infoRow("地址", item.address));
         list.appendChild(infoRow("營業時間", item.hours));
         list.appendChild(infoRow("門票", ticketStr));
@@ -3508,51 +3609,85 @@
         return;
       }
 
+
       const tagOpts = TAGS.map((t) =>
         `<label class="check-label"><input type="checkbox" data-tag="${t.id}" ${(item.tags || []).includes(t.id) ? "checked" : ""}/> ${t.label}</label>`
       ).join("");
-      const links = (item.links || []).map((l) => `${l.title || ""}|${l.url || ""}`).join("\n");
       let pendingCover = item.coverImage || "";
-      openSheet(
-        "編輯景點",
-        `
-        <div class="field"><label>景點圖片（卡片背景）</label>
-          <label class="btn-ghost btn-sm" style="display:block;text-align:center;margin:0 0 8px;">
-            選擇圖片
-            <input id="fCover" type="file" accept="image/*" class="sr-only" />
-          </label>
-          <div class="cover-preview${pendingCover ? " has-img" : ""}" id="coverPreview">${pendingCover ? "" : "尚未上傳"}</div>
-          <button type="button" class="btn-ghost btn-sm" id="btnClearCover" style="margin-top:8px;">移除圖片</button>
-        </div>
-        <div class="field"><label>開始時間（選填）</label><input id="fTime" type="time" /></div>
-        <div class="field"><label>結束時間（選填）</label><input id="fEndTime" type="time" /></div>
+      let pendingLinks = Array.isArray(item.links)
+        ? item.links.map((l) => ({ title: l.title || "", url: l.url || "" }))
+        : [];
+      if (!pendingLinks.length) pendingLinks = [];
+      const hoursParsed = parseHoursFields(item.hours || "");
+      const hasAdvanced =
+        !!(pendingCover || item.cost || item.ticketPrice || item.ticketStatus === "bought" ||
+          item.ticketStatus === "unbought" || item.note || (item.links || []).length ||
+          hoursParsed.start || hoursParsed.end || hoursParsed.note);
+      const timeBlockHtml = isWish ? "" : `
+        <div class="place-sec-title">行程時間（選填）</div>
+        <div class="field"><label>開始時間</label><input id="fTime" type="time" /></div>
+        <div class="field"><label>結束時間</label><input id="fEndTime" type="time" /></div>
         <div class="field"><label>停留時間（依起迄自動計算）</label>
           <input id="fDurLabel" type="text" readonly value="—"/>
         </div>
         <button type="button" class="btn-ghost btn-sm" id="btnClearTime" style="margin:-4px 0 10px;">清除時間</button>
-        <div class="field"><label>景點名稱</label><input id="fPlace" value=""/></div>
-        <div class="row">
-          <div class="field"><label>花費</label><input id="fCost" type="number" min="0" step="0.01" value="${item.cost || 0}"/></div>
-          <div class="field"><label>幣別</label>
-            <select id="fCur">${["TWD","JPY","USD","EUR","KRW","THB"].map((c)=>`<option ${item.currency===c?"selected":""}>${c}</option>`).join("")}</select>
-          </div>
-        </div>
-        <div class="field"><label>地址</label><input id="fAddr" value="" placeholder="用於導航與交通估算"/></div>
-        <div class="field"><label>營業時間（起）</label><input id="fHoursStart" type="time" /></div>
-        <div class="field"><label>營業時間（迄）</label><input id="fHoursEnd" type="time" /></div>
-        <div class="row">
-          <div class="field"><label>門票狀態</label>
-            <select id="fTicketSt">
-              <option value="none" ${item.ticketStatus==="none"?"selected":""}>無需門票</option>
-              <option value="unbought" ${item.ticketStatus==="unbought"?"selected":""}>需要門票（未買）</option>
-              <option value="bought" ${item.ticketStatus==="bought"?"selected":""}>需要門票（已買）</option>
-            </select>
-          </div>
-          <div class="field" id="fTicketPriceWrap" style="display:none;"><label>門票價格</label><input id="fTicket" value="${item.ticketPrice || ""}"/></div>
-        </div>
+      `;
+      openSheet(
+        isWish ? "編輯想去" : "編輯景點",
+        `
+        <div class="place-sec-title">基本資料</div>
+        <div class="field"><label>景點名稱 *</label><input id="fPlace" maxlength="80" placeholder="必填"/></div>
         <div class="field"><label>標籤</label><div>${tagOpts}</div></div>
-        <div class="field"><label>共同備註</label><textarea id="fNote" rows="2"></textarea></div>
-        <div class="field"><label>連結（每行：標題|網址）</label><textarea id="fLinks" rows="2"></textarea></div>
+        ${timeBlockHtml}
+        <div class="field">
+          <label>地址（選填）</label>
+          <input id="fAddr" value="" placeholder="地址，或貼上 Google Maps 連結"/>
+          <div class="place-addr-actions">
+            <button type="button" class="btn-ghost btn-sm" id="btnAddrPreview">預覽導航</button>
+          </div>
+          <p class="hint">可貼上 Google Maps 分享連結，會嘗試自動帶出地點名稱。</p>
+        </div>
+        <details class="place-more"${hasAdvanced ? " open" : ""}>
+          <summary>更多資訊（選填）</summary>
+          <div class="place-more-body">
+            <div class="field"><label>景點圖片（卡片背景）</label>
+              <label class="btn-ghost btn-sm" style="display:block;text-align:center;margin:0 0 8px;">
+                選擇圖片
+                <input id="fCover" type="file" accept="image/*" class="sr-only" />
+              </label>
+              <div class="cover-preview${pendingCover ? " has-img" : ""}" id="coverPreview">${pendingCover ? "" : "尚未上傳"}</div>
+              <button type="button" class="btn-ghost btn-sm" id="btnClearCover" style="margin-top:8px;">移除圖片</button>
+            </div>
+            <div class="row">
+              <div class="field"><label>其他花費（不含門票）</label><input id="fCost" type="number" min="0" step="0.01" value="${item.cost || 0}"/></div>
+              <div class="field"><label>幣別</label>
+                <select id="fCur">${["TWD","JPY","USD","EUR","KRW","THB"].map((c)=>`<option ${item.currency===c?"selected":""}>${c}</option>`).join("")}</select>
+              </div>
+            </div>
+            <p class="hint" id="fCostHint" style="margin-top:-8px;">門票請填下方，避免跟花費重複計算。</p>
+            <div class="field"><label>營業時間（起）</label><input id="fHoursStart" type="time" /></div>
+            <div class="field"><label>營業時間（迄）</label><input id="fHoursEnd" type="time" /></div>
+            <div class="field"><label>營業說明（選填）</label>
+              <input id="fHoursNote" placeholder="例如：週一公休、11–14／17–21"/>
+            </div>
+            <div class="row">
+              <div class="field"><label>門票狀態</label>
+                <select id="fTicketSt">
+                  <option value="none" ${item.ticketStatus==="none"?"selected":""}>無需門票</option>
+                  <option value="unbought" ${item.ticketStatus==="unbought"?"selected":""}>需要門票（未買）</option>
+                  <option value="bought" ${item.ticketStatus==="bought"?"selected":""}>需要門票（已買）</option>
+                </select>
+              </div>
+              <div class="field" id="fTicketPriceWrap" style="display:none;"><label>門票價格</label><input id="fTicket" value="${item.ticketPrice || ""}" placeholder="例如 2000 JPY"/></div>
+            </div>
+            <div class="field"><label>共同備註</label><textarea id="fNote" rows="2"></textarea></div>
+            <div class="field">
+              <label>連結</label>
+              <div class="place-link-list" id="fLinkList"></div>
+              <button type="button" class="btn-ghost btn-sm" id="btnAddLink" style="margin:0;">＋ 新增連結</button>
+            </div>
+          </div>
+        </details>
         `,
         `<button type="button" class="btn-danger btn-sm" id="btnDelPlace">刪除</button>
          <button type="button" class="btn-ghost" id="btnMapsNav">導航</button>
@@ -3563,15 +3698,13 @@
       $("fPlace").value = item.place || "";
       $("fAddr").value = item.address || "";
       $("fNote").value = item.note || "";
-      $("fLinks").value = links;
+      if ($("fHoursNote")) $("fHoursNote").value = hoursParsed.note || "";
       const preview = $("coverPreview");
       if (pendingCover) preview.style.backgroundImage = `url("${pendingCover}")`;
 
-      const initialEnd = item.endTime || (item.time && item.durationMin ? addMinutesToTime(item.time, item.durationMin) : "");
       const resetTimeInput = (el, val) => {
         if (!el) return;
         const v = String(val || "").trim();
-        // 部分瀏覽器對 type=time 設空字串會失敗，切換 type 強制重設
         try {
           el.type = "text";
           el.value = v;
@@ -3581,39 +3714,89 @@
           el.value = v;
         }
       };
-      resetTimeInput($("fTime"), item.time || "");
-      resetTimeInput($("fEndTime"), initialEnd || "");
 
-      const syncDurationLabel = () => {
-        const mins = calcDurationMin($("fTime").value, $("fEndTime").value);
-        $("fDurLabel").value = formatDurationLabel(mins);
-      };
-      syncDurationLabel();
-      $("fTime")?.addEventListener("change", syncDurationLabel);
-      $("fTime")?.addEventListener("input", syncDurationLabel);
-      $("fEndTime")?.addEventListener("change", syncDurationLabel);
-      $("fEndTime")?.addEventListener("input", syncDurationLabel);
-      $("btnClearTime")?.addEventListener("click", () => {
-        resetTimeInput($("fTime"), "");
-        resetTimeInput($("fEndTime"), "");
+      if (!isWish) {
+        const initialEnd = item.endTime || (item.time && item.durationMin ? addMinutesToTime(item.time, item.durationMin) : "");
+        resetTimeInput($("fTime"), item.time || "");
+        resetTimeInput($("fEndTime"), initialEnd || "");
+        const syncDurationLabel = () => {
+          const mins = calcDurationMin($("fTime").value, $("fEndTime").value);
+          $("fDurLabel").value = formatDurationLabel(mins);
+        };
         syncDurationLabel();
-      });
+        $("fTime")?.addEventListener("change", syncDurationLabel);
+        $("fTime")?.addEventListener("input", syncDurationLabel);
+        $("fEndTime")?.addEventListener("change", syncDurationLabel);
+        $("fEndTime")?.addEventListener("input", syncDurationLabel);
+        $("btnClearTime")?.addEventListener("click", () => {
+          resetTimeInput($("fTime"), "");
+          resetTimeInput($("fEndTime"), "");
+          syncDurationLabel();
+        });
+      }
+
+      resetTimeInput($("fHoursStart"), hoursParsed.start || "");
+      resetTimeInput($("fHoursEnd"), hoursParsed.end || "");
 
       const syncTicketPriceWrap = () => {
         const wrap = $("fTicketPriceWrap");
         if (!wrap) return;
-        if ($("fTicketSt").value === "none") {
-          wrap.style.display = "none";
-        } else {
-          wrap.style.display = "block";
-        }
+        wrap.style.display = $("fTicketSt").value === "none" ? "none" : "block";
       };
       syncTicketPriceWrap();
       $("fTicketSt")?.addEventListener("change", syncTicketPriceWrap);
 
-      const [hStart, hEnd] = (item.hours || "").split(" - ");
-      resetTimeInput($("fHoursStart"), hStart || "");
-      resetTimeInput($("fHoursEnd"), hEnd || "");
+      const normalizeAddrInput = () => {
+        const el = $("fAddr");
+        if (!el) return;
+        const next = extractAddressFromMapsText(el.value);
+        if (next && next !== el.value.trim()) el.value = next;
+      };
+      $("fAddr")?.addEventListener("paste", () => setTimeout(normalizeAddrInput, 0));
+      $("fAddr")?.addEventListener("change", normalizeAddrInput);
+      $("btnAddrPreview")?.addEventListener("click", () => {
+        normalizeAddrInput();
+        openGoogleMaps({ ...item, address: $("fAddr").value.trim() || item.address });
+      });
+
+      const renderLinkList = () => {
+        const list = $("fLinkList");
+        if (!list) return;
+        list.innerHTML = "";
+        if (!pendingLinks.length) {
+          list.innerHTML = `<p class="hint" style="margin:0;">尚未新增連結</p>`;
+          return;
+        }
+        pendingLinks.forEach((link, idx) => {
+          const row = document.createElement("div");
+          row.className = "place-link-row";
+          row.innerHTML = `
+            <input data-link-title type="text" placeholder="標題（例如官方網站）" />
+            <div class="row">
+              <input data-link-url type="url" placeholder="https://" style="flex:1;" />
+              <button type="button" class="btn-ghost btn-sm" data-link-del style="width:auto;margin:0;">移除</button>
+            </div>
+          `;
+          row.querySelector("[data-link-title]").value = link.title || "";
+          row.querySelector("[data-link-url]").value = link.url || "";
+          row.querySelector("[data-link-title]").addEventListener("input", (e) => {
+            pendingLinks[idx].title = e.target.value;
+          });
+          row.querySelector("[data-link-url]").addEventListener("input", (e) => {
+            pendingLinks[idx].url = e.target.value;
+          });
+          row.querySelector("[data-link-del]").addEventListener("click", () => {
+            pendingLinks.splice(idx, 1);
+            renderLinkList();
+          });
+          list.appendChild(row);
+        });
+      };
+      renderLinkList();
+      $("btnAddLink")?.addEventListener("click", () => {
+        pendingLinks.push({ title: "", url: "" });
+        renderLinkList();
+      });
 
       $("fCover")?.addEventListener("change", async (e) => {
         const file = e.target.files && e.target.files[0];
@@ -3623,7 +3806,7 @@
           preview.classList.add("has-img");
           preview.textContent = "";
           preview.style.backgroundImage = `url("${pendingCover}")`;
-          e.target.value = ""; // 清空 input 以便下次能選同一個檔案
+          e.target.value = "";
         } catch (err) {
           alert(err.message || "圖片處理失敗");
           e.target.value = "";
@@ -3636,7 +3819,61 @@
         preview.textContent = "尚未上傳";
       });
 
+      const collectForm = () => {
+        normalizeAddrInput();
+        const tags = [...document.querySelectorAll("#sheetBody [data-tag]:checked")].map((el) => el.getAttribute("data-tag"));
+        const links = pendingLinks
+          .map((l) => ({ title: String(l.title || "").trim(), url: String(l.url || "").trim() }))
+          .filter((l) => l.url);
+        const timeVal = isWish ? String(item.time || "").trim() : String($("fTime")?.value || "").trim();
+        const endVal = isWish ? String(item.endTime || "").trim() : String($("fEndTime")?.value || "").trim();
+        const hoursStr = buildHoursStr($("fHoursStart")?.value, $("fHoursEnd")?.value, $("fHoursNote")?.value);
+        return {
+          time: timeVal,
+          endTime: endVal,
+          place: ($("fPlace").value || "").trim(),
+          durationMin: timeVal && endVal ? calcDurationMin(timeVal, endVal) : (isWish ? (Number(item.durationMin) || 0) : 0),
+          cost: Number($("fCost")?.value) || 0,
+          currency: $("fCur")?.value || item.currency || "TWD",
+          address: ($("fAddr").value || "").trim(),
+          hours: hoursStr,
+          ticketPrice: $("fTicketSt")?.value === "none" ? "" : ($("fTicket")?.value || "").trim(),
+          ticketStatus: $("fTicketSt")?.value || "none",
+          note: $("fNote")?.value || "",
+          links,
+          tags: tags.length ? tags : ["other"],
+          coverImage: pendingCover || "",
+        };
+      };
+
+      const snapshotForm = () => JSON.stringify(collectForm());
+      let initialSnap = "";
+      requestAnimationFrame(() => { initialSnap = snapshotForm(); });
+
+      const applyFormTo = (target) => {
+        const data = collectForm();
+        Object.assign(target, data);
+        if (!isWish) {
+          if (!data.time) target.time = "";
+          if (!data.endTime) target.endTime = "";
+          if (!data.time || !data.endTime) target.durationMin = 0;
+        }
+        delete target.lat;
+        delete target.lng;
+        return data;
+      };
+
+      sheetBeforeClose = () => {
+        try {
+          if (initialSnap && snapshotForm() !== initialSnap) {
+            return confirm("有尚未儲存的變更，確定關閉？");
+          }
+        } catch {}
+        return true;
+      };
+
       $("btnMapsNav")?.addEventListener("click", () => {
+        normalizeAddrInput();
         openGoogleMaps({ ...item, address: $("fAddr").value.trim() || item.address });
       });
       $("btnSavePlace")?.addEventListener("click", () => {
@@ -3644,44 +3881,12 @@
         const isDraft = !!(draftPlace && draftPlace.item && draftPlace.item.id === item.id);
         let target = findPlaceById(item.id);
         if (!target) target = item;
-
-        const tags = [...document.querySelectorAll("#sheetBody [data-tag]:checked")].map((el) => el.getAttribute("data-tag"));
-        const linkLines = ($("fLinks").value || "").split("\n").map((l) => l.trim()).filter(Boolean).map((l) => {
-          const [title, url] = l.split("|");
-          return { title: (title || "").trim(), url: (url || title || "").trim() };
-        });
-        const timeVal = String($("fTime")?.value || "").trim();
-        const endVal = String($("fEndTime")?.value || "").trim();
-        const hStartVal = String($("fHoursStart")?.value || "").trim();
-        const hEndVal = String($("fHoursEnd")?.value || "").trim();
-        let hoursStr = "";
-        if (hStartVal && hEndVal) hoursStr = `${hStartVal} - ${hEndVal}`;
-        else if (hStartVal) hoursStr = hStartVal;
-        else if (hEndVal) hoursStr = hEndVal;
-
-        Object.assign(target, {
-          time: timeVal,
-          endTime: endVal,
-          place: $("fPlace").value.trim(),
-          durationMin: timeVal && endVal ? calcDurationMin(timeVal, endVal) : 0,
-          cost: Number($("fCost").value) || 0,
-          currency: $("fCur").value,
-          address: $("fAddr").value.trim(),
-          hours: hoursStr,
-          ticketPrice: $("fTicketSt").value === "none" ? "" : $("fTicket").value.trim(),
-          ticketStatus: $("fTicketSt").value,
-          note: $("fNote").value,
-          links: linkLines,
-          tags: tags.length ? tags : ["other"],
-          coverImage: pendingCover || "",
-        });
-        // 明確清掉時間相關殘值，避免舊 endTime/duration 被顯示邏輯推回
-        if (!timeVal) target.time = "";
-        if (!endVal) target.endTime = "";
-        if (!timeVal || !endVal) target.durationMin = 0;
-        delete target.lat;
-        delete target.lng;
-
+        const data = applyFormTo(target);
+        if (!data.place) {
+          alert("請先填寫景點名稱");
+          $("fPlace")?.focus();
+          return;
+        }
         if (isDraft) {
           if (draftPlace.isWish) {
             if (!(tripState.content.wishlist || []).some((x) => x.id === target.id)) {
@@ -3699,6 +3904,7 @@
         } else {
           schedulePush({ action: "修改景點", detail: target.place || "" });
         }
+        sheetBeforeClose = null;
         closeSheet();
         renderTimeline();
         renderWishlist();
@@ -3707,14 +3913,17 @@
         ensureContent();
         if (draftPlace && draftPlace.item && draftPlace.item.id === item.id) {
           draftPlace = null;
+          sheetBeforeClose = null;
           closeSheet();
           return;
         }
+        if (!confirm("確定刪除此景點？")) return;
         tripState.content.wishlist = tripState.content.wishlist.filter((x) => x.id !== item.id);
         tripState.content.days.forEach(d => {
           d.items = (d.items || []).filter(x => x.id !== item.id);
         });
         schedulePush({ action: "刪除景點", detail: item.place || "" });
+        sheetBeforeClose = null;
         closeSheet();
         renderTimeline();
         renderWishlist();
@@ -3723,44 +3932,13 @@
         if (!confirm("排入此日將會自動儲存目前的變更，確定嗎？")) return;
         ensureContent();
         let target = findPlaceById(item.id) || item;
-        
-        // 儲存邏輯
-        const tags = [...document.querySelectorAll("#sheetBody [data-tag]:checked")].map((el) => el.getAttribute("data-tag"));
-        const linkLines = ($("fLinks").value || "").split("\n").map((l) => l.trim()).filter(Boolean).map((l) => {
-          const [title, url] = l.split("|");
-          return { title: (title || "").trim(), url: (url || title || "").trim() };
-        });
-        const timeVal = String($("fTime")?.value || "").trim();
-        const endVal = String($("fEndTime")?.value || "").trim();
-        const hStartVal = String($("fHoursStart")?.value || "").trim();
-        const hEndVal = String($("fHoursEnd")?.value || "").trim();
-        let hoursStr = "";
-        if (hStartVal && hEndVal) hoursStr = `${hStartVal} - ${hEndVal}`;
-        else if (hStartVal) hoursStr = hStartVal;
-        else if (hEndVal) hoursStr = hEndVal;
-
-        Object.assign(target, {
-          time: timeVal,
-          endTime: endVal,
-          place: $("fPlace").value.trim(),
-          durationMin: timeVal && endVal ? calcDurationMin(timeVal, endVal) : 0,
-          cost: Number($("fCost").value) || 0,
-          currency: $("fCur").value,
-          address: $("fAddr").value.trim(),
-          hours: hoursStr,
-          ticketPrice: $("fTicketSt").value === "none" ? "" : $("fTicket").value.trim(),
-          ticketStatus: $("fTicketSt").value,
-          note: $("fNote").value,
-          links: linkLines,
-          tags: tags.length ? tags : ["other"],
-          coverImage: pendingCover || "",
-        });
-        if (!timeVal) target.time = "";
-        if (!endVal) target.endTime = "";
-        if (!timeVal || !endVal) target.durationMin = 0;
-        delete target.lat;
-        delete target.lng;
-
+        const data = applyFormTo(target);
+        if (!data.place) {
+          alert("請先填寫景點名稱");
+          $("fPlace")?.focus();
+          return;
+        }
+        // 從想去排入行程時，時間可之後再填
         tripState.content.wishlist = tripState.content.wishlist.filter((x) => x.id !== item.id);
         if (tripState.content.days[activeDayIdx]) {
           tripState.content.days[activeDayIdx].items.push(target);
@@ -3768,6 +3946,7 @@
         const dayLabel = tripState.content.days[activeDayIdx]?.label || ("Day " + (activeDayIdx + 1));
         schedulePush({ action: "排入日程", detail: `${target.place || ""} → ${dayLabel}` });
         draftPlace = null;
+        sheetBeforeClose = null;
         closeSheet();
         renderTimeline();
         renderWishlist();
@@ -3776,58 +3955,28 @@
         if (!confirm("移入想去清單將會自動儲存目前的變更，確定嗎？")) return;
         ensureContent();
         let target = findPlaceById(item.id) || item;
-
-        // 儲存邏輯
-        const tags = [...document.querySelectorAll("#sheetBody [data-tag]:checked")].map((el) => el.getAttribute("data-tag"));
-        const linkLines = ($("fLinks").value || "").split("\n").map((l) => l.trim()).filter(Boolean).map((l) => {
-          const [title, url] = l.split("|");
-          return { title: (title || "").trim(), url: (url || title || "").trim() };
-        });
-        const timeVal = String($("fTime")?.value || "").trim();
-        const endVal = String($("fEndTime")?.value || "").trim();
-        const hStartVal = String($("fHoursStart")?.value || "").trim();
-        const hEndVal = String($("fHoursEnd")?.value || "").trim();
-        let hoursStr = "";
-        if (hStartVal && hEndVal) hoursStr = `${hStartVal} - ${hEndVal}`;
-        else if (hStartVal) hoursStr = hStartVal;
-        else if (hEndVal) hoursStr = hEndVal;
-
-        Object.assign(target, {
-          time: timeVal,
-          endTime: endVal,
-          place: $("fPlace").value.trim(),
-          durationMin: timeVal && endVal ? calcDurationMin(timeVal, endVal) : 0,
-          cost: Number($("fCost").value) || 0,
-          currency: $("fCur").value,
-          address: $("fAddr").value.trim(),
-          hours: hoursStr,
-          ticketPrice: $("fTicketSt").value === "none" ? "" : $("fTicket").value.trim(),
-          ticketStatus: $("fTicketSt").value,
-          note: $("fNote").value,
-          links: linkLines,
-          tags: tags.length ? tags : ["other"],
-          coverImage: pendingCover || "",
-        });
-        if (!timeVal) target.time = "";
-        if (!endVal) target.endTime = "";
-        if (!timeVal || !endVal) target.durationMin = 0;
-        delete target.lat;
-        delete target.lng;
-
+        const data = applyFormTo(target);
+        if (!data.place) {
+          alert("請先填寫景點名稱");
+          $("fPlace")?.focus();
+          return;
+        }
         tripState.content.days.forEach(d => {
           d.items = (d.items || []).filter(x => x.id !== item.id);
         });
         tripState.content.wishlist.push(target);
         schedulePush({ action: "移入想去清單", detail: target.place || "" });
         draftPlace = null;
+        sheetBeforeClose = null;
         closeSheet();
         renderTimeline();
         renderWishlist();
       });
     }
 
+
     function openGoogleMaps(item) {
-      const address = (item && item.address || "").trim();
+      let address = extractAddressFromMapsText(item && item.address || "");
       if (!address) {
         alert("請先填寫地址");
         return;
@@ -3860,6 +4009,9 @@
     }
     function isPublicFundExpense(ex) {
       return normalizeExpenseCat(ex && ex.category) === "public" || !!(ex && ex.usePublicFund);
+    }
+    function isExpenseSettled(ex) {
+      return !!(ex && ex.settled);
     }
     function memberCount() {
       return Math.max(1, Object.keys((tripState && tripState.members) || {}).length);
@@ -3900,8 +4052,8 @@
       const paidBy = {};
       const shareOf = {};
       (tripState.content.expenses || []).forEach((ex) => {
-        // 公費支出不進智慧算帳
-        if (isPublicFundExpense(ex)) return;
+        // 公費／已付清支出不進智慧算帳
+        if (isPublicFundExpense(ex) || isExpenseSettled(ex)) return;
         const amt = Number(ex.amountTwd) || 0;
         const payer = ex.payer || "";
         if (payer) paidBy[payer] = (paidBy[payer] || 0) + amt;
@@ -4111,7 +4263,7 @@
         const cat = normalizeExpenseCat(ex.category);
         const label = expenseCatLabel(cat);
         const amt = Number(ex.amountTwd) || 0;
-        if (isPublicFundExpense(ex)) return;
+        if (isPublicFundExpense(ex) || isExpenseSettled(ex)) return;
         if (ex.payer === me && amt) {
           prepaidByCat[label] = (prepaidByCat[label] || 0) + amt;
         }
@@ -4282,8 +4434,9 @@
       expenses.slice().reverse().forEach((ex) => {
         const card = document.createElement("button");
         card.type = "button";
-        card.className = "ex-card";
         const isPublic = isPublicFundExpense(ex);
+        const settled = !isPublic && isExpenseSettled(ex);
+        card.className = "ex-card" + (settled ? " is-settled" : "");
         let split = (ex.splitWith || []).filter(Boolean);
         if (!split.length && ex.payer) split = [ex.payer];
         const isPersonal = !isPublic && split.length === 1 && split[0] === ex.payer;
@@ -4297,14 +4450,18 @@
           : `${ex.currency} ${Number(ex.amount || 0).toLocaleString("zh-TW")}`;
         const hasReceipt = !!ex.receiptImage;
         const cat = normalizeExpenseCat(ex.category);
+        const settleIcon = settled
+          ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>`
+          : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8"/></svg>`;
 
         card.innerHTML = `
+          ${isPublic ? "" : `<span class="ex-settled-btn${settled ? " is-on" : ""}" data-settle-toggle title="${settled ? "已付清（點擊取消）" : "標記已付清"}" aria-label="${settled ? "已付清" : "標記已付清"}">${settleIcon}</span>`}
           <div class="ex-avatar">${moneyInitial(ex.payer)}</div>
           <div class="ex-body">
             <div class="ex-title"></div>
             <div class="ex-meta">
               <span class="ex-chip is-cat${isPublic ? " is-public" : ""}">${expenseCatLabel(cat)}</span>
-              <span class="ex-chip">${isPublic ? "不進算帳" : (isPersonal ? "個人支出" : `分攤 ${split.length}`)}</span>
+              <span class="ex-chip">${isPublic ? "不進算帳" : (settled ? "已付清" : (isPersonal ? "個人支出" : `分攤 ${split.length}`))}</span>
               ${hasReceipt ? `<span class="ex-receipt-badge">收據</span>` : ""}
               ${isPublic ? "" : `<div class="ex-split">${splitAvatars}</div>`}
             </div>
@@ -4317,6 +4474,22 @@
         `;
         card.querySelector(".ex-title").textContent = ex.title || "消費";
         applyAvatarToEl(card.querySelector(".ex-avatar"), ex.payer || "");
+        const settleBtn = card.querySelector("[data-settle-toggle]");
+        if (settleBtn) {
+          settleBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            ensureContent();
+            const live = (tripState.content.expenses || []).find((x) => x.id === ex.id);
+            if (!live || isPublicFundExpense(live)) return;
+            live.settled = !live.settled;
+            schedulePush({
+              action: live.settled ? "標記付清" : "取消付清",
+              detail: live.title || "消費",
+            });
+            renderMoney();
+          });
+        }
         const thumb = card.querySelector(".ex-receipt-thumb");
         if (thumb && ex.receiptImage) {
           thumb.style.backgroundImage = `url(${ex.receiptImage})`;
@@ -4697,6 +4870,7 @@
         data.splitWith = isPublic ? [] : [...document.querySelectorAll("#eSplit input:checked")].map((x) => x.value);
         data.amountTwd = toTwd(data.amount, data.currency);
         data.receiptImage = receiptImage || "";
+        data.settled = isPublic ? false : !!data.settled;
         data.at = new Date().toISOString();
         if (isPublic) {
           const left = getPublicFundTwd() - getPublicFundSpent();
@@ -5170,11 +5344,35 @@
         <div class="field"><label>回程日</label><input id="tripSetEnd" type="date" /></div>
         <p class="hint" id="tripSetDateHint"></p>
         <div class="field"><label>行程備註</label><textarea id="tripSetNotes" rows="4"></textarea></div>
+        <div class="field">
+          <label>行程碼</label>
+          <div class="row" style="margin-bottom:0;align-items:center;">
+            <input id="tripSetCode" type="text" readonly value="" style="flex:1;font-family:ui-monospace,Menlo,monospace;font-weight:700;letter-spacing:.06em;" />
+            <button type="button" class="btn-ghost" id="btnCopyTripCode" style="width:auto;margin:0;flex-shrink:0;">複製</button>
+          </div>
+          <p class="hint" style="margin:8px 0 0;">分享給同伴即可加入共同編輯。</p>
+        </div>
       `, `<button type="button" class="btn-primary" id="btnSaveTripSettings">儲存</button>`);
       $("tripSetTitle").value = tripState.title || "";
       $("tripSetNotes").value = tripState.content.notes || "";
       $("tripSetStart").value = tripState.content.tripStart || "";
       $("tripSetEnd").value = tripState.content.tripEnd || "";
+      const tripCode = (tripState.code || currentTripCode || "").trim();
+      if ($("tripSetCode")) $("tripSetCode").value = tripCode;
+      $("btnCopyTripCode")?.addEventListener("click", async () => {
+        const code = ($("tripSetCode")?.value || tripCode || "").trim();
+        if (!code) {
+          showToast("目前沒有行程碼");
+          return;
+        }
+        try {
+          await navigator.clipboard.writeText(code);
+          showToast("已複製行程碼 " + code);
+        } catch {
+          prompt("行程碼", code);
+          showToast("請手動複製行程碼");
+        }
+      });
       const sheetBody = $("sheetBody");
       const wireDateField = (id) => {
         const el = $(id);
@@ -5825,20 +6023,6 @@
         setHomeTab(btn.getAttribute("data-home-tab"));
       });
       $("btnBackHome").addEventListener("click", () => { clearPresence(); showHome(); });
-      $("btnCopyCode").addEventListener("click", async () => {
-        const code = ($("editTripCode").textContent || currentTripCode || "").trim();
-        if (!code || code === "————") {
-          showToast("目前沒有行程碼");
-          return;
-        }
-        try {
-          await navigator.clipboard.writeText(code);
-          showToast("已複製行程碼 " + code);
-        } catch {
-          prompt("行程碼", code);
-          showToast("請手動複製行程碼");
-        }
-      });
       $("btnLeaveTrip").addEventListener("click", () => {
         if (!currentTripCode) return;
         if (!confirm("確定移除此行程？")) return;
@@ -5936,8 +6120,8 @@
         }
       });
 
-      $("sheetClose").addEventListener("click", closeSheet);
-      $("sheetBackdrop").addEventListener("click", closeSheet);
+      $("sheetClose").addEventListener("click", requestCloseSheet);
+      $("sheetBackdrop").addEventListener("click", requestCloseSheet);
 
       if (!isAdmin) {
         // 有上次行程：立刻進行程（本地快取先畫，Firebase 背景同步）
