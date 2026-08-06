@@ -524,7 +524,7 @@
     }
     .bottom-nav button.is-active {
       color: var(--accent-deep);
-      transform: translateY(-6px);
+      animation: nav-tab-bob 1.35s ease-in-out infinite;
     }
     .bottom-nav svg {
       width: 26px; height: 26px; display: block; flex-shrink: 0;
@@ -536,6 +536,16 @@
     }
     .bottom-nav button > span {
       display: block; width: 100%; text-align: center;
+    }
+    @keyframes nav-tab-bob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .bottom-nav button.is-active {
+        animation: none;
+        transform: none;
+      }
     }
 
     /* Day tabs */
