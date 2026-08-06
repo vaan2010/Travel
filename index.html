@@ -358,7 +358,96 @@
       font-size: 1rem; font-variant-numeric: tabular-nums;
       -webkit-appearance: none; appearance: none; display: block;
     }
-    .field input[type="file"] { padding: 10px 12px; }
+    .date-range-trigger {
+      width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
+      position: relative;
+      min-height: 64px; padding: 12px 40px; border-radius: 12px;
+      border: 1px solid var(--line); background: #f7fbfc; text-align: center;
+      font-weight: 700; font-size: .95rem; color: var(--ink);
+    }
+    .date-range-trigger .dr-label {
+      flex: 1; min-width: 0; max-width: 100%;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+      line-height: 1.25; text-align: center;
+    }
+    .date-range-trigger .dr-label.is-empty { color: var(--muted); font-weight: 600; }
+    .date-range-trigger .dr-line {
+      display: block; width: 100%;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      text-align: center;
+    }
+    .date-range-trigger .dr-between {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--accent-soft); color: var(--accent-deep);
+      flex-shrink: 0;
+    }
+    .date-range-trigger .dr-between svg {
+      width: 14px; height: 14px; display: block;
+    }
+    .date-range-trigger .dr-line-sub {
+      font-size: .95rem; font-weight: 700; color: var(--ink);
+    }
+    .date-range-trigger .dr-label.is-empty .dr-line-sub {
+      font-size: .82rem; font-weight: 600; color: var(--muted);
+    }
+    .date-range-trigger .dr-clear {
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+      flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
+      display: none; align-items: center; justify-content: center;
+      background: #e8eef0; color: var(--muted); font-size: 1rem; line-height: 1;
+    }
+    .date-range-trigger.has-value .dr-clear { display: inline-flex; }
+    .date-range-panel {
+      margin-top: 10px; padding: 12px; border-radius: 14px;
+      border: 1px solid var(--line); background: #fff;
+      box-shadow: 0 8px 24px rgba(22,48,56,.08);
+    }
+    .date-range-panel.hidden { display: none; }
+    .dr-head {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      margin-bottom: 10px;
+    }
+    .dr-head strong {
+      font-size: .95rem; font-weight: 800; color: var(--accent-deep);
+      font-variant-numeric: tabular-nums;
+    }
+    .dr-nav {
+      width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--line);
+      background: #f4f8f9; color: var(--ink); font-weight: 800; font-size: 1rem;
+    }
+    .dr-week {
+      display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 4px;
+    }
+    .dr-week span {
+      text-align: center; font-size: .68rem; font-weight: 700; color: var(--muted); padding: 4px 0;
+    }
+    .dr-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+    .dr-day {
+      aspect-ratio: 1; border: none; background: transparent; border-radius: 10px;
+      font-size: .88rem; font-weight: 700; color: var(--ink);
+      display: flex; align-items: center; justify-content: center;
+      font-variant-numeric: tabular-nums; position: relative;
+    }
+    .dr-day.is-muted { color: #c5ced3; }
+    .dr-day.is-in-range { background: var(--accent-soft); border-radius: 0; }
+    .dr-day.is-start, .dr-day.is-end {
+      background: var(--accent); color: #fff; border-radius: 10px; z-index: 1;
+    }
+    .dr-day.is-start.is-in-range { border-radius: 10px 0 0 10px; }
+    .dr-day.is-end.is-in-range { border-radius: 0 10px 10px 0; }
+    .dr-day.is-start.is-end { border-radius: 10px; }
+    .dr-day:not(.is-muted):active { transform: scale(.94); }
+    .dr-hint {
+      margin: 10px 0 0; font-size: .75rem; color: var(--muted); text-align: center; line-height: 1.4;
+    }
+    .field input.input-center,
+    .field textarea.input-center {
+      text-align: center;
+    }
+    .field.label-center > label {
+      text-align: center;
+    }
     .hint { font-size: .8rem; color: var(--muted); line-height: 1.4; margin: 0 0 16px; }
     .sheet-body .field .hint { margin: 8px 0 0; }
     .empty { color: var(--muted); font-size: .9rem; padding: 12px 0; text-align: center; }
@@ -424,16 +513,26 @@
       display: grid; grid-template-columns: repeat(4, 1fr);
       background: rgba(255,255,255,.96); backdrop-filter: blur(12px);
       border-top: 1px solid var(--line); z-index: 50;
+      overflow: visible;
     }
     .bottom-nav button {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       gap: 4px; font-size: .8rem; font-weight: 700; color: var(--muted);
       padding: 8px 4px 6px; line-height: 1.1; text-align: center;
+      transform: translateY(0);
+      transition: transform .22s cubic-bezier(.2,.8,.2,1), color .18s ease;
     }
-    .bottom-nav button.is-active { color: var(--accent-deep); }
+    .bottom-nav button.is-active {
+      color: var(--accent-deep);
+      transform: translateY(-6px);
+    }
     .bottom-nav svg {
       width: 26px; height: 26px; display: block; flex-shrink: 0;
       margin: 0 auto;
+      transition: transform .22s cubic-bezier(.2,.8,.2,1);
+    }
+    .bottom-nav button.is-active svg {
+      transform: scale(1.08);
     }
     .bottom-nav button > span {
       display: block; width: 100%; text-align: center;
@@ -1386,9 +1485,17 @@
           <div id="homePaneMine">
             <section class="panel home-create-panel" id="homeCreatePanel">
               <h2 class="home-panel-title">建立新行程</h2>
-              <div class="field"><label>行程名稱</label><input id="newTripTitle" maxlength="80" placeholder="沖繩五日遊" /></div>
-              <div class="field"><label>出發日</label><input id="newTripStart" type="date" /></div>
-              <div class="field"><label>回程日</label><input id="newTripEnd" type="date" /></div>
+              <div class="field label-center"><label>行程名稱</label><input id="newTripTitle" class="input-center" maxlength="80" placeholder="沖繩五日遊" /></div>
+              <div class="field label-center" id="newTripDateRangeField">
+                <label>旅程日期</label>
+                <button type="button" class="date-range-trigger" id="newTripDateBtn" aria-expanded="false">
+                  <span class="dr-label is-empty">點選出發日，再點回程日</span>
+                  <span class="dr-clear" title="清除日期" aria-label="清除日期">×</span>
+                </button>
+                <div class="date-range-panel hidden" id="newTripDatePanel"></div>
+                <input type="hidden" id="newTripStart" />
+                <input type="hidden" id="newTripEnd" />
+              </div>
               <p class="hint" id="newTripDateHint">可先填旅程日期，會自動建立對應的 Day。</p>
               <button type="button" class="btn-primary" id="btnCreateTrip">新增行程</button>
               <p class="hint" style="margin-top:10px;margin-bottom:0;">新增後會產生行程碼，分享給同伴即可共同編輯。</p>
@@ -1721,6 +1828,7 @@
     let lockHeartbeat = null;
     let sheetMode = null;
     let sheetBeforeClose = null; // () => true 允許關閉；false 則取消
+    let newTripDateRangePicker = null;
     let pendingRegAvatarData = "";
     let sendingRegCode = false;
     const avatarCacheByName = {};
@@ -2863,6 +2971,200 @@
       const diff = Math.round((db - da) / 86400000);
       return diff >= 0 ? diff + 1 : 0;
     }
+
+    function isoFromParts(y, m, d) {
+      return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    }
+    function parseIsoParts(iso) {
+      const s = String(iso || "").trim();
+      const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (!m) return null;
+      return { y: Number(m[1]), m: Number(m[2]), d: Number(m[3]) };
+    }
+    function formatDateRangeLabelHtml(start, end, placeholder) {
+      const arrow = `<span class="dr-between" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v12"/><path d="M7 12l5 5 5-5"/></svg></span>`;
+      if (start && end) {
+        return `<span class="dr-line">${formatDayDateLabel(start)}</span>${arrow}<span class="dr-line dr-line-sub">${formatDayDateLabel(end)}</span>`;
+      }
+      if (start) {
+        return `<span class="dr-line">${formatDayDateLabel(start)}</span>${arrow}<span class="dr-line dr-line-sub">選擇回程日</span>`;
+      }
+      return `<span class="dr-line">${placeholder || "點選出發日，再點回程日"}</span>`;
+    }
+
+    /** 點選出發日再點回程日的區間月曆 */
+    function mountDateRangePicker(opts) {
+      const trigger = typeof opts.trigger === "string" ? $(opts.trigger) : opts.trigger;
+      const panel = typeof opts.panel === "string" ? $(opts.panel) : opts.panel;
+      const startInput = typeof opts.startInput === "string" ? $(opts.startInput) : opts.startInput;
+      const endInput = typeof opts.endInput === "string" ? $(opts.endInput) : opts.endInput;
+      if (!trigger || !panel || !startInput || !endInput) return null;
+
+      let viewY, viewM;
+      const init = parseIsoParts(startInput.value) || parseIsoParts(endInput.value);
+      const now = new Date();
+      viewY = init ? init.y : now.getFullYear();
+      viewM = init ? init.m : (now.getMonth() + 1);
+      let pickingStart = true;
+
+      const labelEl = trigger.querySelector(".dr-label");
+      const clearBtn = trigger.querySelector(".dr-clear");
+
+      const syncTrigger = () => {
+        const s = startInput.value || "";
+        const e = endInput.value || "";
+        const has = !!(s || e);
+        if (labelEl) {
+          labelEl.innerHTML = formatDateRangeLabelHtml(s, e, opts.placeholder || "點選出發日，再點回程日");
+          labelEl.classList.toggle("is-empty", !has);
+        }
+        trigger.classList.toggle("has-value", has);
+      };
+
+      const setOpen = (open) => {
+        panel.classList.toggle("hidden", !open);
+        trigger.setAttribute("aria-expanded", open ? "true" : "false");
+        if (open) {
+          const focusIso = startInput.value || endInput.value;
+          const p = parseIsoParts(focusIso);
+          if (p) { viewY = p.y; viewM = p.m; }
+          pickingStart = !(startInput.value && !endInput.value);
+          render();
+          setTimeout(() => panel.scrollIntoView({ block: "nearest", behavior: "smooth" }), 40);
+        }
+      };
+
+      const render = () => {
+        const start = startInput.value || "";
+        const end = endInput.value || "";
+        const first = new Date(viewY, viewM - 1, 1);
+        const startWeekday = first.getDay(); // 0 Sun
+        const daysInMonth = new Date(viewY, viewM, 0).getDate();
+        const prevDays = new Date(viewY, viewM - 1, 0).getDate();
+
+        let cells = "";
+        for (let i = 0; i < 42; i++) {
+          let y = viewY, m = viewM, d, muted = false;
+          if (i < startWeekday) {
+            d = prevDays - startWeekday + i + 1;
+            m = viewM - 1;
+            if (m < 1) { m = 12; y = viewY - 1; }
+            muted = true;
+          } else if (i >= startWeekday + daysInMonth) {
+            d = i - startWeekday - daysInMonth + 1;
+            m = viewM + 1;
+            if (m > 12) { m = 1; y = viewY + 1; }
+            muted = true;
+          } else {
+            d = i - startWeekday + 1;
+          }
+          const iso = isoFromParts(y, m, d);
+          const isStart = start && iso === start;
+          const isEnd = end && iso === end;
+          const inRange = start && end && iso > start && iso < end;
+          const cls = [
+            "dr-day",
+            muted ? "is-muted" : "",
+            isStart ? "is-start" : "",
+            isEnd ? "is-end" : "",
+            (inRange || (isStart && end && start !== end) || (isEnd && start && start !== end)) ? "is-in-range" : "",
+          ].filter(Boolean).join(" ");
+          cells += `<button type="button" class="${cls}" data-iso="${iso}">${d}</button>`;
+        }
+
+        const hint = !start
+          ? "先點選出發日"
+          : (!end ? "再點選回程日（區間會自動連起來）" : "再點一天可重新選擇出發日");
+
+        panel.innerHTML = `
+          <div class="dr-head">
+            <button type="button" class="dr-nav" data-dr-nav="-1" aria-label="上個月">‹</button>
+            <strong>${viewY}年${viewM}月</strong>
+            <button type="button" class="dr-nav" data-dr-nav="1" aria-label="下個月">›</button>
+          </div>
+          <div class="dr-week">
+            <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+          </div>
+          <div class="dr-grid">${cells}</div>
+          <p class="dr-hint">${hint}</p>
+        `;
+      };
+
+      const emit = () => {
+        syncTrigger();
+        startInput.dispatchEvent(new Event("change", { bubbles: true }));
+        endInput.dispatchEvent(new Event("change", { bubbles: true }));
+        if (typeof opts.onChange === "function") opts.onChange(startInput.value, endInput.value);
+      };
+
+      const pickDay = (iso) => {
+        if (!iso) return;
+        if (pickingStart || !startInput.value || (startInput.value && endInput.value)) {
+          startInput.value = iso;
+          endInput.value = "";
+          pickingStart = false;
+          const p = parseIsoParts(iso);
+          if (p) { viewY = p.y; viewM = p.m; }
+        } else {
+          let a = startInput.value;
+          let b = iso;
+          if (b < a) { const t = a; a = b; b = t; }
+          startInput.value = a;
+          endInput.value = b;
+          pickingStart = true;
+        }
+        render();
+        emit();
+        if (startInput.value && endInput.value && opts.autoClose !== false) {
+          setTimeout(() => setOpen(false), 180);
+        }
+      };
+
+      trigger.addEventListener("click", (e) => {
+        if (e.target.closest(".dr-clear")) {
+          e.preventDefault();
+          e.stopPropagation();
+          startInput.value = "";
+          endInput.value = "";
+          pickingStart = true;
+          syncTrigger();
+          emit();
+          if (!panel.classList.contains("hidden")) render();
+          return;
+        }
+        setOpen(panel.classList.contains("hidden"));
+      });
+
+      panel.addEventListener("click", (e) => {
+        const nav = e.target.closest("[data-dr-nav]");
+        if (nav) {
+          const delta = Number(nav.getAttribute("data-dr-nav")) || 0;
+          viewM += delta;
+          if (viewM < 1) { viewM = 12; viewY -= 1; }
+          if (viewM > 12) { viewM = 1; viewY += 1; }
+          render();
+          return;
+        }
+        const day = e.target.closest(".dr-day");
+        if (day) pickDay(day.getAttribute("data-iso"));
+      });
+
+      syncTrigger();
+      return {
+        setValues(start, end) {
+          startInput.value = start || "";
+          endInput.value = end || "";
+          pickingStart = true;
+          const p = parseIsoParts(startInput.value) || parseIsoParts(endInput.value);
+          if (p) { viewY = p.y; viewM = p.m; }
+          syncTrigger();
+          if (!panel.classList.contains("hidden")) render();
+        },
+        close: () => setOpen(false),
+        open: () => setOpen(true),
+      };
+    }
+
     function getTripStart() {
       ensureContent();
       return String(tripState.content.tripStart || "").trim();
@@ -5339,9 +5641,17 @@
       if (!tripState || applyingRemote) return;
       ensureContent();
       openSheet("行程設定", `
-        <div class="field"><label>行程名稱</label><input id="tripSetTitle" maxlength="80" /></div>
-        <div class="field"><label>出發日</label><input id="tripSetStart" type="date" /></div>
-        <div class="field"><label>回程日</label><input id="tripSetEnd" type="date" /></div>
+        <div class="field label-center"><label>行程名稱</label><input id="tripSetTitle" class="input-center" maxlength="80" /></div>
+        <div class="field label-center" id="tripSetDateRangeField">
+          <label>旅程日期</label>
+          <button type="button" class="date-range-trigger" id="tripSetDateBtn" aria-expanded="false">
+            <span class="dr-label is-empty">點選出發日，再點回程日</span>
+            <span class="dr-clear" title="清除日期" aria-label="清除日期">×</span>
+          </button>
+          <div class="date-range-panel hidden" id="tripSetDatePanel"></div>
+          <input type="hidden" id="tripSetStart" />
+          <input type="hidden" id="tripSetEnd" />
+        </div>
         <p class="hint" id="tripSetDateHint"></p>
         <div class="field"><label>行程備註</label><textarea id="tripSetNotes" rows="4"></textarea></div>
         <div class="field">
@@ -5373,22 +5683,6 @@
           showToast("請手動複製行程碼");
         }
       });
-      const sheetBody = $("sheetBody");
-      const wireDateField = (id) => {
-        const el = $(id);
-        if (!el) return;
-        el.addEventListener("focus", () => {
-          sheetBody?.classList.add("has-date-focus");
-          setTimeout(() => {
-            el.scrollIntoView({ block: "center", behavior: "smooth" });
-          }, 50);
-        });
-        el.addEventListener("blur", () => {
-          sheetBody?.classList.remove("has-date-focus");
-        });
-      };
-      wireDateField("tripSetStart");
-      wireDateField("tripSetEnd");
       const updateDateHint = () => {
         const start = $("tripSetStart").value || "";
         const end = $("tripSetEnd").value || "";
@@ -5405,7 +5699,7 @@
         const n = start && end ? daysBetweenInclusive(start, end) : 0;
         const curDays = (tripState.content.days || []).length;
         if (!n) {
-          el.textContent = "請同時填寫出發日與回程日。";
+          el.textContent = "請同時填寫出發日與回程日，或兩欄都留空。";
           return;
         }
         let msg = `共 ${n} 天：Day 1＝${formatDayDateShort(start)} … Day ${n}＝${formatDayDateShort(end)}`;
@@ -5413,8 +5707,13 @@
         else if (curDays > n) msg += `（目前有 ${curDays} 天，多餘 ${curDays - n} 天會刪除）`;
         el.textContent = msg;
       };
-      $("tripSetStart")?.addEventListener("change", updateDateHint);
-      $("tripSetEnd")?.addEventListener("change", updateDateHint);
+      mountDateRangePicker({
+        trigger: "tripSetDateBtn",
+        panel: "tripSetDatePanel",
+        startInput: "tripSetStart",
+        endInput: "tripSetEnd",
+        onChange: updateDateHint,
+      });
       updateDateHint();
       $("btnSaveTripSettings").addEventListener("click", () => {
         if (!tripState || applyingRemote) return;
@@ -5827,6 +6126,7 @@
       $("newTripTitle").value = "";
       if ($("newTripStart")) $("newTripStart").value = "";
       if ($("newTripEnd")) $("newTripEnd").value = "";
+      newTripDateRangePicker?.setValues("", "");
       if ($("newTripDateHint")) $("newTripDateHint").textContent = "可先填旅程日期，會自動建立對應的 Day。";
       showEditor(code);
     }
@@ -6014,8 +6314,14 @@
           ? `將建立 ${n} 天：Day 1＝${formatDayDateShort(start)} … Day ${n}＝${formatDayDateShort(end)}`
           : "請同時填寫出發日與回程日，或兩欄都留空。";
       };
-      $("newTripStart")?.addEventListener("change", updateNewTripDateHint);
-      $("newTripEnd")?.addEventListener("change", updateNewTripDateHint);
+      newTripDateRangePicker = mountDateRangePicker({
+        trigger: "newTripDateBtn",
+        panel: "newTripDatePanel",
+        startInput: "newTripStart",
+        endInput: "newTripEnd",
+        onChange: updateNewTripDateHint,
+      });
+      updateNewTripDateHint();
       $("btnJoinTrip")?.addEventListener("click", () => joinTrip().catch((e) => alert(e.message || e)));
       $("homeTabs")?.addEventListener("click", (e) => {
         const btn = e.target.closest("button[data-home-tab]");
