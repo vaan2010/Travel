@@ -641,6 +641,44 @@
       display: flex; align-items: center; justify-content: center;
       color: #94a3b8; border-radius: 8px; background: rgba(255,255,255,.72);
     }
+    .transit-slot {
+      display: flex; align-items: center; gap: 8px;
+      min-height: 32px; padding: 2px 16px;
+      background: #f3f7f9;
+      border-bottom: 1px solid var(--line);
+      cursor: pointer;
+      user-select: none;
+    }
+    .transit-slot-line {
+      flex: 1; height: 0; border-top: 1px dashed #c5d0d6; min-width: 12px;
+    }
+    .transit-slot-chip {
+      flex-shrink: 1; min-width: 0; max-width: 78%;
+      display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+      padding: 3px 10px; border-radius: 999px;
+      font-size: .72rem; font-weight: 700; line-height: 1.2;
+      color: #8b959b; background: #fff;
+      border: 1px dashed #c5d0d6;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .transit-slot.is-filled .transit-slot-chip {
+      color: #0369a1;
+      border-style: solid;
+      border-color: rgba(3,105,161,.32);
+      background: rgba(3,105,161,.08);
+    }
+    .transit-slot.is-locked { opacity: .72; cursor: default; }
+    .transit-mode-seg {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 4px;
+    }
+    .transit-mode-opt {
+      padding: 10px 6px; border-radius: 12px; border: 1px solid var(--line);
+      background: #f4f8f9; font-weight: 700; font-size: .78rem; color: var(--muted);
+      line-height: 1.2;
+    }
+    .transit-mode-opt.is-active {
+      background: rgba(3,105,161,.12); color: #0369a1; border-color: rgba(3,105,161,.35);
+    }
     .place-head { display: flex; gap: 10px; align-items: stretch; }
     .place-time {
       width: 72px; flex-shrink: 0; align-self: stretch;
@@ -1808,6 +1846,14 @@
       { id: "stay", label: "住宿" },
       { id: "other", label: "其他" },
     ];
+    const TRANSIT_MODES = [
+      { id: "walk", label: "步行", icon: "🚶" },
+      { id: "metro", label: "地鐵", icon: "🚇" },
+      { id: "bus", label: "巴士", icon: "🚌" },
+      { id: "taxi", label: "計程車", icon: "🚕" },
+      { id: "train", label: "鐵路", icon: "🚆" },
+      { id: "other", label: "其他", icon: "↔" },
+    ];
     const DEFAULT_FX = { JPY: 0.22, USD: 32, EUR: 35, KRW: 0.024, THB: 0.92, TWD: 1 };
 
     const app = initializeApp(firebaseConfig, "travel-app");
@@ -1833,6 +1879,7 @@
     let daySortable = null;
     let wishSortable = null;
     let draftPlace = null; // { item, isWish, dayIdx } 尚未儲存的新增草稿
+    let draftTransit = null; // { fromId, toId, dayIdx } 尚未儲存的交通草稿
     let myLockId = null;
     let presenceTimer = null;
     let lockHeartbeat = null;
@@ -2250,6 +2297,87 @@
       return item;
     }
 
+    function isTransitItem(item) {
+      return !!(item && item.kind === "transit");
+    }
+
+    function emptyTransitPayload(partial) {
+      const base = {
+        mode: "walk", from: "", to: "", time: "", endTime: "", durationMin: 0, note: "",
+      };
+      const item = Object.assign(base, partial || {});
+      if (!item.endTime && item.time && item.durationMin) {
+        item.endTime = addMinutesToTime(item.time, item.durationMin);
+      }
+      item.durationMin = calcDurationMin(item.time, item.endTime);
+      return item;
+    }
+
+    function transitPayloadFromItem(it) {
+      if (!it || typeof it !== "object") return emptyTransitPayload();
+      return emptyTransitPayload({
+        mode: it.mode || "walk",
+        from: it.from || "",
+        to: it.to || "",
+        time: it.time || "",
+        endTime: it.endTime || "",
+        durationMin: it.durationMin || 0,
+        note: it.note || "",
+      });
+    }
+
+    function isTransitFilled(t) {
+      return !!(t && typeof t === "object");
+    }
+
+    function getTransitMode(modeId) {
+      return TRANSIT_MODES.find((m) => m.id === modeId) || TRANSIT_MODES[0];
+    }
+
+    function formatTransitRoute(fromPlace, toPlace, transit) {
+      const from = String((transit && transit.from) || (fromPlace && fromPlace.place) || "").trim();
+      const to = String((transit && transit.to) || (toPlace && toPlace.place) || "").trim();
+      if (from && to) return `${from} → ${to}`;
+      if (from) return `${from} → …`;
+      if (to) return `… → ${to}`;
+      return "短程交通";
+    }
+
+    function formatTransitChip(transit) {
+      if (!isTransitFilled(transit)) return "＋ 交通";
+      const parts = [];
+      const mode = getTransitMode(transit.mode);
+      parts.push(`${mode.icon} ${mode.label}`);
+      const dur = resolveItemDuration(transit);
+      if (dur > 0) parts.push(formatDurationShort(dur));
+      else if (transit.time) parts.push(transit.time);
+      const note = String(transit.note || "").trim();
+      if (note) parts.push(note);
+      return parts.join(" · ");
+    }
+
+    function foldTransitItemsIntoPlaces(items) {
+      const src = Array.isArray(items) ? items : [];
+      const out = [];
+      for (let i = 0; i < src.length; i++) {
+        const it = src[i];
+        if (!it) continue;
+        if (isTransitItem(it)) {
+          // transit item 形式（舊版）通常長這樣：placeA -> transit -> placeB
+          // 把它折成 placeA.nextTransits[placeB.id]，確保拖曳重排後仍能還原正確路段。
+          const prev = out[out.length - 1];
+          const next = src[i + 1];
+          if (prev && next && !isTransitItem(next)) {
+            if (!prev.nextTransits) prev.nextTransits = {};
+            prev.nextTransits[next.id] = transitPayloadFromItem(it);
+          }
+          continue;
+        }
+        out.push(it);
+      }
+      return out;
+    }
+
     function emptyTripPayload(title, code, creator, opts) {
       const now = new Date().toISOString();
       const tripStart = String((opts && opts.tripStart) || "").trim();
@@ -2319,7 +2447,9 @@
       if (!Array.isArray(c.documents)) c.documents = [];
       c.days.forEach((d) => {
         if (!Array.isArray(d.items)) d.items = [];
+        d.items = foldTransitItemsIntoPlaces(d.items);
       });
+      c.wishlist = (Array.isArray(c.wishlist) ? c.wishlist : []).filter((it) => !isTransitItem(it));
     }
 
     function deepClone(v) {
@@ -2474,6 +2604,7 @@
       ensureContent();
       activeDayIdx = 0;
       draftPlace = null;
+      draftTransit = null;
       closeAddPlanMenu();
       $("tripTitleHead").textContent = tripState.title;
       schedulePush({
@@ -2528,6 +2659,7 @@
       ensureContent();
       activeDayIdx = 0;
       draftPlace = null;
+      draftTransit = null;
       closeAddPlanMenu();
       $("tripTitleHead").textContent = tripState.title;
       schedulePush({
@@ -2758,6 +2890,7 @@
     function clearTripViewUI() {
       activeDayIdx = 0;
       draftPlace = null;
+      draftTransit = null;
       presenceState = {};
       locksState = {};
       if (daySortable) { try { daySortable.destroy(); } catch {} daySortable = null; }
@@ -2895,6 +3028,10 @@
         draftPlace = null;
         renderTimeline();
         renderWishlist();
+      }
+      if (draftTransit) {
+        draftTransit = null;
+        renderTimeline();
       }
     }
     function requestCloseSheet() {
@@ -3289,7 +3426,11 @@
 
       if (itemCount) {
         if (!Array.isArray(tripState.content.wishlist)) tripState.content.wishlist = [];
-        (day.items || []).forEach((it) => tripState.content.wishlist.push(it));
+        (day.items || []).forEach((it) => {
+          // Wishlist 不顯示交通槽；避免 nextTransits 從 Day 竄進清單造成資料混亂
+          if (it && it.nextTransits) delete it.nextTransits;
+          tripState.content.wishlist.push(it);
+        });
       }
       tripState.content.days.splice(idx, 1);
       renumberDayLabels();
@@ -3586,10 +3727,37 @@
         if (i === activeDayIdx) return;
         d.items = (d.items || []).filter((it) => !dayIdSet.has(it.id) && !wishIdSet.has(it.id));
       });
-      tripState.content.wishlist = wishIds.map((id) => mapItems[id]).filter(Boolean);
+      tripState.content.wishlist = wishIds.map((id) => mapItems[id]).filter(Boolean).filter((it) => !isTransitItem(it));
       schedulePush({ action: action || "調整行程", detail: "" });
       renderTimeline();
       renderWishlist();
+    }
+
+    function buildTransitSlot(fromItem, toItem) {
+      const transit = fromItem && fromItem.nextTransits ? fromItem.nextTransits[toItem && toItem.id] : null;
+      const filled = !!transit;
+      const lock = getLock(fromItem && fromItem.id);
+      const lockedByOther = lock && lock.user !== accountName;
+      const slot = document.createElement("div");
+      slot.className = "transit-slot"
+        + (filled ? " is-filled" : " is-empty")
+        + (lockedByOther ? " is-locked" : "");
+      slot.innerHTML = `
+        <span class="transit-slot-line" aria-hidden="true"></span>
+        <span class="transit-slot-chip"></span>
+        <span class="transit-slot-line" aria-hidden="true"></span>`;
+      const chip = slot.querySelector(".transit-slot-chip");
+      chip.textContent = formatTransitChip(transit);
+      chip.title = filled ? formatTransitRoute(fromItem, toItem, transit) : "點擊填寫這段交通";
+      slot.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (lockedByOther) {
+          alert((lock.user || "其他人") + " 正在編輯");
+          return;
+        }
+        openTransitSheet(fromItem, toItem, filled ? "view" : "edit");
+      });
+      return slot;
     }
 
     function renderTimeline() {
@@ -3599,14 +3767,15 @@
       const day = tripState.content.days[activeDayIdx];
       if (!day) { wrap.innerHTML = '<p class="empty">尚無日程</p>'; return; }
       const items = day.items || [];
-      if (!items.length) {
+      const places = items.filter((it) => it && !isTransitItem(it));
+      if (!places.length) {
         const empty = document.createElement("p");
         empty.className = "empty timeline-empty";
         empty.textContent = "這天還沒有景點，按下方新增";
         wrap.appendChild(empty);
       }
 
-      items.forEach((item) => {
+      places.forEach((item, idx) => {
         const lock = getLock(item.id);
         const lockedByOther = lock && lock.user !== accountName;
         const card = document.createElement("div");
@@ -3653,6 +3822,9 @@
           openPlaceSheet(item, activeDayIdx, false, "view");
         });
         wrap.appendChild(card);
+
+        const nextPlace = places[idx + 1];
+        if (nextPlace) wrap.appendChild(buildTransitSlot(item, nextPlace));
       });
 
       if (daySortable) daySortable.destroy();
@@ -3664,13 +3836,17 @@
         ghostClass: "sortable-ghost",
         chosenClass: "sortable-chosen",
         draggable: ".place-card",
+        filter: ".transit-slot, .timeline-empty",
         group: { name: "places", pull: true, put: true },
         emptyInsertThreshold: 48,
+        onStart: () => {
+          wrap.querySelectorAll(".transit-slot").forEach((el) => { el.style.display = "none"; });
+        },
         onAdd: () => {
           const empty = wrap.querySelector(".timeline-empty");
           if (empty) empty.remove();
         },
-        onEnd: () => scheduleSyncPlaces("調整景點順序"),
+        onEnd: () => scheduleSyncPlaces("調整行程順序"),
       });
     }
 
@@ -3695,7 +3871,7 @@
       ensureContent();
       const wrap = $("wishlist");
       wrap.innerHTML = "";
-      const list = tripState.content.wishlist || [];
+      const list = (tripState.content.wishlist || []).filter((it) => !isTransitItem(it));
       if (!list.length) {
         const empty = document.createElement("p");
         empty.className = "empty wishlist-empty";
@@ -3823,13 +3999,13 @@
     function startAddPlace() {
       if (!tripState || !tripState.content) return;
       if (!tripState.content.days[activeDayIdx]) return;
-      const item = emptyItem({ time: "", endTime: "", place: "新景點" });
+      const item = emptyItem({ time: "", endTime: "", place: "" });
       draftPlace = { item, isWish: false, dayIdx: activeDayIdx };
       openPlaceSheet(item, activeDayIdx, false, "edit");
     }
     function startAddWish() {
       ensureContent();
-      const item = emptyItem({ place: "想去的地方", time: "", endTime: "" });
+      const item = emptyItem({ place: "", time: "", endTime: "" });
       draftPlace = { item, isWish: true, dayIdx: -1 };
       openPlaceSheet(item, -1, true, "edit");
     }
@@ -3852,6 +4028,7 @@
       // 一律從最新 tripState 取值，避免同步後物件參考過期
       const live = findPlaceById(item && item.id) || item;
       if (!live) return;
+      if (isTransitItem(live)) return;
       item = live;
       const editing = mode === "edit";
       const lock = getLock(item.id);
@@ -3948,7 +4125,7 @@
         isWish ? "編輯想去" : "編輯景點",
         `
         <div class="place-sec-title">基本資料</div>
-        <div class="field"><label>景點名稱 *</label><input id="fPlace" maxlength="80" placeholder="必填"/></div>
+        <div class="field"><label>景點名稱 *</label><input id="fPlace" maxlength="80" placeholder="${isWish ? "例如：想去的咖啡廳" : "例如：淺草寺"}"/></div>
         <div class="field"><label>標籤</label><div>${tagOpts}</div></div>
         ${timeBlockHtml}
         <div class="field">
@@ -4283,6 +4460,200 @@
         closeSheet();
         renderTimeline();
         renderWishlist();
+      });
+    }
+
+    async function openTransitSheet(fromItem, toItem, mode) {
+      const fromLive = findPlaceById(fromItem && fromItem.id) || fromItem;
+      const toLive = findPlaceById(toItem && toItem.id) || toItem;
+      if (!fromLive || !toLive) return;
+      fromItem = fromLive;
+      toItem = toLive;
+      const existing = (fromItem && fromItem.nextTransits && toItem && fromItem.nextTransits[toItem.id])
+        ? fromItem.nextTransits[toItem.id]
+        : null;
+      const transit = existing ? transitPayloadFromItem(existing) : emptyTransitPayload({
+        from: fromItem.place || "",
+        to: toItem.place || "",
+      });
+      if (!existing) {
+        transit.from = fromItem.place || "";
+        transit.to = toItem.place || "";
+      } else {
+        if (!transit.from) transit.from = fromItem.place || "";
+        if (!transit.to) transit.to = toItem.place || "";
+      }
+
+      const editing = mode === "edit";
+      const lock = getLock(fromItem.id);
+      const lockedByOther = lock && lock.user !== accountName;
+
+      if (editing) {
+        if (lockedByOther) {
+          alert((lock.user || "其他人") + " 正在編輯此交通");
+          return;
+        }
+        const ok = await acquireLock(fromItem.id);
+        if (!ok) {
+          alert((getLock(fromItem.id) || {}).user + " 正在編輯此交通");
+          return;
+        }
+      }
+
+      const modeInfo = getTransitMode(transit.mode);
+      const routeLabel = formatTransitRoute(fromItem, toItem, transit);
+
+      if (!editing) {
+        openSheet(
+          "交通資訊",
+          `<div class="info-list" id="transitInfoList"></div>
+           ${lockedByOther ? `<p class="hint" id="transitLockHint"></p>` : ""}`,
+          `${lockedByOther ? "" : '<button type="button" class="btn-ghost" id="btnSwitchTransitEdit" style="flex:1;">編輯</button>'}`,
+          "transit"
+        );
+        const list = $("transitInfoList");
+        const timeText = formatTimeRange(transit);
+        list.appendChild(infoRow("路段", routeLabel));
+        list.appendChild(infoRow("方式", `${modeInfo.icon} ${modeInfo.label}`));
+        if (timeText) list.appendChild(infoRow("時間", timeText));
+        const dur = resolveItemDuration(transit);
+        if (dur > 0) list.appendChild(infoRow("耗時", formatDurationLabel(dur)));
+        list.appendChild(infoRow("備註", transit.note));
+        if ($("transitLockHint")) $("transitLockHint").textContent = (lock.user || "") + " 正在編輯此交通";
+        $("btnSwitchTransitEdit")?.addEventListener("click", () => {
+          closeSheet();
+          openTransitSheet(fromItem, toItem, "edit");
+        });
+        return;
+      }
+
+      const modeBtns = TRANSIT_MODES.map((m) =>
+        `<button type="button" class="transit-mode-opt${transit.mode === m.id ? " is-active" : ""}" data-transit-mode="${m.id}">${m.icon}<br>${m.label}</button>`
+      ).join("");
+
+      openSheet(
+        existing ? "編輯交通" : "這段怎麼走",
+        `
+        <p class="hint" style="margin-top:0;">${routeLabel}</p>
+        <div class="place-sec-title">交通方式</div>
+        <div class="transit-mode-seg">${modeBtns}</div>
+        <div class="place-sec-title">時間（選填）</div>
+        <div class="field"><label>開始時間</label><input id="fTransitTime" type="time" /></div>
+        <div class="field"><label>結束時間</label><input id="fTransitEndTime" type="time" /></div>
+        <div class="field"><label>耗時（依起迄自動計算）</label>
+          <input id="fTransitDurLabel" type="text" readonly value="—"/>
+        </div>
+        <button type="button" class="btn-ghost btn-sm" id="btnClearTransitTime" style="margin:-4px 0 10px;">清除時間</button>
+        <div class="field"><label>備註（選填）</label><textarea id="fTransitNote" rows="2" placeholder="例如：地鐵 3 號線、轉一次"></textarea></div>
+        `,
+        `${existing ? '<button type="button" class="btn-danger btn-sm" id="btnDelTransit">清除</button>' : ""}
+         <button type="button" class="btn-primary" id="btnSaveTransit" style="flex:1;">儲存</button>`,
+        "transit"
+      );
+
+      let pendingMode = transit.mode || "walk";
+      $("fTransitNote").value = transit.note || "";
+
+      const resetTimeInput = (el, val) => {
+        if (!el) return;
+        const v = String(val || "").trim();
+        try {
+          el.type = "text";
+          el.value = v;
+          el.type = "time";
+          el.value = v;
+        } catch {
+          el.value = v;
+        }
+      };
+
+      const initialEnd = transit.endTime || (transit.time && transit.durationMin ? addMinutesToTime(transit.time, transit.durationMin) : "");
+      resetTimeInput($("fTransitTime"), transit.time || "");
+      resetTimeInput($("fTransitEndTime"), initialEnd || "");
+      const syncDurationLabel = () => {
+        const mins = calcDurationMin($("fTransitTime").value, $("fTransitEndTime").value);
+        $("fTransitDurLabel").value = formatDurationLabel(mins);
+      };
+      syncDurationLabel();
+      $("fTransitTime")?.addEventListener("change", syncDurationLabel);
+      $("fTransitTime")?.addEventListener("input", syncDurationLabel);
+      $("fTransitEndTime")?.addEventListener("change", syncDurationLabel);
+      $("fTransitEndTime")?.addEventListener("input", syncDurationLabel);
+      $("btnClearTransitTime")?.addEventListener("click", () => {
+        resetTimeInput($("fTransitTime"), "");
+        resetTimeInput($("fTransitEndTime"), "");
+        syncDurationLabel();
+      });
+
+      document.querySelectorAll("[data-transit-mode]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          pendingMode = btn.getAttribute("data-transit-mode") || "walk";
+          document.querySelectorAll("[data-transit-mode]").forEach((b) => {
+            b.classList.toggle("is-active", b === btn);
+          });
+        });
+      });
+
+      const collectForm = () => {
+        const timeVal = String($("fTransitTime")?.value || "").trim();
+        const endVal = String($("fTransitEndTime")?.value || "").trim();
+        return emptyTransitPayload({
+          mode: pendingMode,
+          from: fromItem.place || "",
+          to: toItem.place || "",
+          time: timeVal,
+          endTime: endVal,
+          durationMin: timeVal && endVal ? calcDurationMin(timeVal, endVal) : 0,
+          note: ($("fTransitNote").value || "").trim(),
+        });
+      };
+
+      const snapshotForm = () => JSON.stringify(collectForm());
+      let initialSnap = "";
+      requestAnimationFrame(() => { initialSnap = snapshotForm(); });
+
+      sheetBeforeClose = () => {
+        try {
+          if (initialSnap && snapshotForm() !== initialSnap) {
+            return confirm("有尚未儲存的變更，確定關閉？");
+          }
+        } catch {}
+        return true;
+      };
+
+      $("btnSaveTransit")?.addEventListener("click", () => {
+        ensureContent();
+        const target = findPlaceById(fromItem.id) || fromItem;
+        if (!target.nextTransits) target.nextTransits = {};
+        target.nextTransits[toItem.id] = collectForm();
+        // 若只剩空物件，刪掉避免渲染誤判
+        if (!Object.keys(target.nextTransits).length) delete target.nextTransits;
+        draftTransit = null;
+        schedulePush({
+          action: existing ? "修改交通" : "新增交通",
+          detail: formatTransitRoute(fromItem, toItem, target.nextTransits[toItem.id]),
+        });
+        sheetBeforeClose = null;
+        closeSheet();
+        renderTimeline();
+      });
+
+      $("btnDelTransit")?.addEventListener("click", () => {
+        ensureContent();
+        if (!confirm("確定清除這段交通？中間的位置仍會保留。")) return;
+        const target = findPlaceById(fromItem.id) || fromItem;
+        if (target && target.nextTransits) {
+          delete target.nextTransits[toItem.id];
+          if (!Object.keys(target.nextTransits).length) delete target.nextTransits;
+        }
+        draftTransit = null;
+        schedulePush({
+          action: "清除交通",
+          detail: formatTransitRoute(fromItem, toItem, transit),
+        });
+        sheetBeforeClose = null;
+        closeSheet();
+        renderTimeline();
       });
     }
 
