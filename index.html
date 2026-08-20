@@ -1425,6 +1425,30 @@
       margin-left: -7px; border-width: 1.5px;
     }
     .check-ready .avatar:first-child { margin-left: 0; }
+    .prep-private-box {
+      margin-top: 16px; padding: 12px 12px 14px;
+      border-radius: 14px; border: 1px dashed rgba(3,105,161,.28);
+      background: linear-gradient(180deg, #f6fbfd 0%, #f9fcfd 100%);
+    }
+    .prep-private-head {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      margin-bottom: 6px;
+    }
+    .prep-private-head h3 {
+      margin: 0; font-size: .88rem; font-weight: 800; color: var(--ink);
+    }
+    .prep-private-badge {
+      flex-shrink: 0; font-size: .68rem; font-weight: 700;
+      color: #0369a1; background: rgba(3,105,161,.1);
+      border: 1px solid rgba(3,105,161,.22);
+      border-radius: 999px; padding: 3px 8px;
+    }
+    .prep-private-hint { margin: 0 0 8px; font-size: .74rem; }
+    .prep-private-box .check-item {
+      background: #fff; border: 1px solid var(--line); border-radius: 12px;
+      margin-bottom: 8px;
+    }
+    .prep-private-box .check-item:last-child { margin-bottom: 0; }
     .btn-icon-del {
       width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
       display: inline-flex; align-items: center; justify-content: center;
@@ -1699,6 +1723,15 @@
           </div>
           <div id="prepLuggage">
             <div id="luggageList"></div>
+            <div class="prep-private-box" id="prepPrivateBox">
+              <div class="prep-private-head">
+                <h3>我的私人行李</h3>
+                <span class="prep-private-badge">僅自己可見</span>
+              </div>
+              <p class="hint prep-private-hint">這份清單存在你的私人空間，其他成員看不到。</p>
+              <div id="privateLuggageList"></div>
+              <button type="button" class="btn-ghost btn-sm" id="btnAddPrivateLuggage" style="width:100%;margin-top:8px;">＋ 新增私人項目</button>
+            </div>
             <button type="button" class="fab" id="btnAddLuggage" title="新增行李" aria-label="新增行李">+</button>
           </div>
           <div id="prepTasks" class="hidden">
@@ -1812,6 +1845,7 @@
     const PATH_EMAIL_INDEX = "accountEmailIndex";
     const PATH_USER_AVATARS = "userAvatars";
     const PATH_TRIPS = "travelTrips";
+    const PATH_PRIVATE_LUGGAGE = "travelPrivateLuggage";
     const ACCT_USER = "username";
     const ACCT_HASH = "passHash";
     const ACCT_EMAIL = "email";
@@ -1855,6 +1889,13 @@
       { id: "other", label: "其他", icon: "↔" },
     ];
     const DEFAULT_FX = { JPY: 0.22, USD: 32, EUR: 35, KRW: 0.024, THB: 0.92, TWD: 1 };
+
+    let privateLuggageState = [];
+    let privateLuggageUnsub = null;
+    let privateLuggagePushTimer = null;
+    let privateLuggageApplyingRemote = false;
+    let privateLuggageLocalEdits = false;
+    let privateLuggagePushGen = 0;
 
     const app = initializeApp(firebaseConfig, "travel-app");
     const rtdb = getDatabase(app);
@@ -2743,10 +2784,149 @@
       }
     }
 
+    function memberPrivateKey() {
+      if (accountSerial) return "s_" + String(accountSerial).replace(/[.#$\[\]/]/g, "_");
+      const name = String(accountName || "").trim();
+      if (!name) return "";
+      return "u_" + name.replace(/[.#$\[\]/]/g, "_");
+    }
+
+    function privateLuggageRef(code) {
+      const tripCode = normalizeCode(code);
+      const key = memberPrivateKey();
+      if (!tripCode || !key) return null;
+      return ref(rtdb, PATH_PRIVATE_LUGGAGE + "/" + key + "/" + tripCode);
+    }
+
+    function legacyPrivateLuggageRef(code) {
+      const tripCode = normalizeCode(code);
+      const key = memberPrivateKey();
+      if (!tripCode || !key) return null;
+      return ref(rtdb, PATH_TRIPS + "/" + tripCode + "/memberPrivate/" + key + "/luggage");
+    }
+
+    function normalizePrivateLuggageList(raw) {
+      if (!raw) return [];
+      let list = [];
+      if (Array.isArray(raw)) {
+        list = raw;
+      } else if (typeof raw === "object") {
+        if (Array.isArray(raw.items)) list = raw.items;
+        else if (raw.items && typeof raw.items === "object") list = Object.values(raw.items);
+        else list = Object.values(raw);
+      }
+      return list.map((it, i) => {
+        if (!it || typeof it !== "object") return null;
+        if (typeof it.text !== "string" && it.text != null && typeof it.text !== "number") return null;
+        return {
+          id: String(it.id || ("lug" + i)),
+          text: String(it.text || "").trim(),
+          done: !!it.done,
+        };
+      }).filter((it) => it && it.id);
+    }
+
+    function privateLuggageWritePayload(list) {
+      const items = {};
+      (Array.isArray(list) ? list : []).forEach((it, i) => {
+        if (!it) return;
+        const id = String(it.id || ("lug" + i));
+        items[id] = { id, text: String(it.text || "").trim(), done: !!it.done };
+      });
+      return { items, updatedAt: Date.now() };
+    }
+
+    function detachPrivateLuggageListener() {
+      if (privateLuggageUnsub) { privateLuggageUnsub(); privateLuggageUnsub = null; }
+    }
+
+    function resetPrivateLuggageState() {
+      privateLuggageState = [];
+      privateLuggageApplyingRemote = false;
+      privateLuggageLocalEdits = false;
+      if (privateLuggagePushTimer) {
+        clearTimeout(privateLuggagePushTimer);
+        privateLuggagePushTimer = null;
+      }
+    }
+
+    async function flushPrivateLuggageNow() {
+      if (privateLuggagePushTimer) {
+        clearTimeout(privateLuggagePushTimer);
+        privateLuggagePushTimer = null;
+      }
+      if (!privateLuggageLocalEdits) return;
+      const r = privateLuggageRef(currentTripCode);
+      const payload = privateLuggageWritePayload(privateLuggageState);
+      if (!r) {
+        privateLuggageLocalEdits = false;
+        return;
+      }
+      const gen = ++privateLuggagePushGen;
+      try {
+        await set(r, payload);
+        if (gen === privateLuggagePushGen) privateLuggageLocalEdits = false;
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+
+    function schedulePrivateLuggagePush() {
+      if (privateLuggageApplyingRemote || !currentTripCode || !memberPrivateKey()) return;
+      privateLuggageLocalEdits = true;
+      if (privateLuggagePushTimer) clearTimeout(privateLuggagePushTimer);
+      privateLuggagePushTimer = setTimeout(() => { flushPrivateLuggageNow(); }, 450);
+    }
+
+    async function migrateLegacyPrivateLuggage(code) {
+      const nextRef = privateLuggageRef(code);
+      const oldRef = legacyPrivateLuggageRef(code);
+      if (!nextRef || !oldRef) return;
+      try {
+        const [nextSnap, oldSnap] = await Promise.all([get(nextRef), get(oldRef)]);
+        const oldList = snapExists(oldSnap) ? normalizePrivateLuggageList(oldSnap.val()) : [];
+        if (!oldList.length) return;
+        const nextList = snapExists(nextSnap) ? normalizePrivateLuggageList(nextSnap.val()) : [];
+        if (!nextList.length && !privateLuggageLocalEdits) {
+          await set(nextRef, privateLuggageWritePayload(oldList));
+        }
+        await remove(oldRef);
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+
+    function attachPrivateLuggageListener(code) {
+      detachPrivateLuggageListener();
+      const r = privateLuggageRef(code);
+      if (!r) return;
+      migrateLegacyPrivateLuggage(code);
+      privateLuggageUnsub = onValue(r, (snap) => {
+        if (privateLuggageLocalEdits) return;
+        privateLuggageApplyingRemote = true;
+        try {
+          privateLuggageState = snapExists(snap) ? normalizePrivateLuggageList(snap.val()) : [];
+          if (activeTab === "prep") renderPrep();
+        } finally {
+          privateLuggageApplyingRemote = false;
+        }
+      }, (err) => { console.warn(err); });
+    }
+
+    function stopPrivateLuggageListener() {
+      detachPrivateLuggageListener();
+      const r = privateLuggageRef(currentTripCode);
+      const shouldFlush = privateLuggageLocalEdits;
+      const payload = shouldFlush ? privateLuggageWritePayload(privateLuggageState) : null;
+      resetPrivateLuggageState();
+      if (shouldFlush && r) set(r, payload).catch((e) => console.warn(e));
+    }
+
     function stopTripListeners() {
       if (tripUnsub) { tripUnsub(); tripUnsub = null; }
       if (presenceUnsub) { presenceUnsub(); presenceUnsub = null; }
       if (locksUnsub) { locksUnsub(); locksUnsub = null; }
+      stopPrivateLuggageListener();
       cancelPush();
       clearInterval(presenceTimer); presenceTimer = null;
       clearInterval(lockHeartbeat); lockHeartbeat = null;
@@ -2823,7 +3003,7 @@
         }
         const val = snap.val();
         if (!val || typeof val !== "object") return;
-        const { presence, locks, ...core } = val;
+        const { presence, locks, memberPrivate, ...core } = val;
         const at = typeof core.updatedAt === "string" ? core.updatedAt : "";
         // 自己推送的回聲：若尚有未送出的本地編輯，不可蓋掉或取消推送
         if (at && at === lastPushUpdatedAt) {
@@ -2881,9 +3061,14 @@
       });
       locksUnsub = () => off(lRef);
 
+      attachPrivateLuggageListener(currentTripCode);
+
       bumpPresence();
       presenceTimer = setInterval(bumpPresence, 15000);
-      window.addEventListener("beforeunload", clearPresence);
+      window.addEventListener("beforeunload", () => {
+        flushPrivateLuggageNow();
+        clearPresence();
+      });
     }
 
     /* ===== UI navigation ===== */
@@ -2898,7 +3083,7 @@
       const clearIds = [
         "timeline", "wishlist", "dayTabs", "dayDateLabel", "presenceRow",
         "expenseList", "settleList", "moneySummary", "personalMoney", "publicFundCard",
-        "luggageList", "taskList", "docList",
+        "luggageList", "privateLuggageList", "taskList", "docList",
         "historyList", "memberList",
       ];
       clearIds.forEach((id) => {
@@ -5642,6 +5827,84 @@
       });
     }
 
+    function openPrivateLuggageSheet(existing) {
+      if (!accountName || !memberPrivateKey()) {
+        alert("請先登入帳號");
+        return;
+      }
+      if (!currentTripCode) return;
+      const isNew = !existing;
+      const data = existing || { id: uid(), text: "", done: false };
+      openSheet(
+        isNew ? "新增私人行李" : "編輯私人行李",
+        `<p class="hint" style="margin-top:0;">只有你看得到這份清單。</p>
+         <div class="field"><label>項目名稱</label><input id="privLugText" maxlength="80" placeholder="例如：備用藥、充電線" /></div>`,
+        `${isNew ? "" : '<button type="button" class="btn-danger btn-sm" id="btnDelPrivLug">刪除</button>'}
+         <button type="button" class="btn-primary" id="btnSavePrivLug" style="flex:1;">儲存</button>`,
+        "private-luggage"
+      );
+      $("privLugText").value = data.text || "";
+      setTimeout(() => $("privLugText")?.focus(), 50);
+      $("btnSavePrivLug")?.addEventListener("click", () => {
+        const text = ($("privLugText").value || "").trim();
+        if (!text) { alert("請填寫項目名稱"); return; }
+        if (isNew) {
+          privateLuggageState.push({ id: data.id, text, done: false });
+        } else {
+          const it = privateLuggageState.find((x) => x.id === data.id);
+          if (it) it.text = text;
+        }
+        schedulePrivateLuggagePush();
+        closeSheet();
+        renderPrep();
+      });
+      $("btnDelPrivLug")?.addEventListener("click", () => {
+        if (!confirm(`確定刪除「${data.text || "此項目"}」？`)) return;
+        privateLuggageState = privateLuggageState.filter((x) => x.id !== data.id);
+        schedulePrivateLuggagePush();
+        closeSheet();
+        renderPrep();
+      });
+    }
+
+    function renderPrivateLuggage() {
+      const box = $("prepPrivateBox");
+      const list = $("privateLuggageList");
+      if (!box || !list) return;
+      if (!accountName || !memberPrivateKey()) {
+        box.classList.add("hidden");
+        return;
+      }
+      box.classList.remove("hidden");
+      list.innerHTML = "";
+      const items = Array.isArray(privateLuggageState) ? privateLuggageState : [];
+      if (!items.length) {
+        list.innerHTML = `<p class="hint" style="margin:0;padding:4px 0;">尚無私人項目</p>`;
+        return;
+      }
+      items.forEach((it) => {
+        const row = document.createElement("div");
+        row.className = "check-item";
+        row.innerHTML = `
+          <input type="checkbox" ${it.done ? "checked" : ""} title="已準備" />
+          <div class="check-body" title="點擊編輯"><strong></strong></div>
+          <button type="button" class="btn-icon-del" title="刪除" aria-label="刪除">${DEL_ICON_SVG}</button>`;
+        row.querySelector("strong").textContent = it.text || "";
+        row.querySelector(".check-body").addEventListener("click", () => openPrivateLuggageSheet(it));
+        row.querySelector("input").addEventListener("change", (e) => {
+          it.done = !!e.target.checked;
+          schedulePrivateLuggagePush();
+        });
+        row.querySelector(".btn-icon-del").addEventListener("click", () => {
+          if (!confirm(`確定刪除「${it.text || "此項目"}」？`)) return;
+          privateLuggageState = privateLuggageState.filter((x) => x.id !== it.id);
+          schedulePrivateLuggagePush();
+          renderPrep();
+        });
+        list.appendChild(row);
+      });
+    }
+
     function openTaskSheet(existing) {
       ensureContent();
       const isNew = !existing;
@@ -5747,6 +6010,7 @@
         });
         lug.appendChild(row);
       });
+      renderPrivateLuggage();
       const tasks = $("taskList");
       tasks.innerHTML = "";
       tripState.content.checklists.tasks.forEach((it) => {
@@ -6765,6 +7029,7 @@
         if (next !== cur) scrollActiveViewToTop();
       });
       $("btnAddLuggage").addEventListener("click", () => openLuggageSheet(null));
+      $("btnAddPrivateLuggage")?.addEventListener("click", () => openPrivateLuggageSheet(null));
       $("btnAddTask").addEventListener("click", () => openTaskSheet(null));
       $("btnAddDoc")?.addEventListener("click", () => $("docFileInput")?.click());
       $("docFileInput").addEventListener("change", async (e) => {
@@ -6821,6 +7086,10 @@
         navigator.serviceWorker.register("./sw.js?v=3").catch(() => {});
       }
     }
+    window.addEventListener("pagehide", () => { flushPrivateLuggageNow(); });
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) flushPrivateLuggageNow();
+    });
     document.addEventListener("click", (e) => {
       const btn = e.target && e.target.closest && e.target.closest("#travelBtnSendRegCode");
       if (!btn) return;
