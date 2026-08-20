@@ -642,18 +642,18 @@
       color: #94a3b8; border-radius: 8px; background: rgba(255,255,255,.72);
     }
     .transit-slot {
-      display: flex; align-items: center; gap: 8px;
-      min-height: 32px; padding: 2px 16px;
+      display: flex; align-items: center; gap: 6px;
+      min-height: 32px; padding: 2px 10px;
       background: #f3f7f9;
       border-bottom: 1px solid var(--line);
       cursor: pointer;
       user-select: none;
     }
     .transit-slot-line {
-      flex: 1; height: 0; border-top: 1px dashed #c5d0d6; min-width: 12px;
+      flex: 0 0 8px; height: 0; border-top: 1px dashed #c5d0d6; min-width: 8px;
     }
     .transit-slot-chip {
-      flex-shrink: 1; min-width: 0; max-width: 78%;
+      flex: 1; min-width: 0; max-width: none;
       display: inline-flex; align-items: center; justify-content: center; gap: 5px;
       padding: 3px 10px; border-radius: 999px;
       font-size: .72rem; font-weight: 700; line-height: 1.2;
@@ -1770,7 +1770,12 @@
                 <div><strong>匯入行程</strong><span>用 JSON 覆蓋目前行程與準備</span></div>
                 <span>›</span>
               </button>
+              <button type="button" class="more-link" id="btnMoreImportTransit">
+                <div><strong>匯入交通</strong><span>只更新景點間交通，不改景點內容</span></div>
+                <span>›</span>
+              </button>
               <input type="file" id="importTripFile" accept="application/json,.json" hidden />
+              <input type="file" id="importTransitFile" accept="application/json,.json" hidden />
             </div>
           </div>
           <div class="panel">
@@ -2622,8 +2627,7 @@
       return c;
     }
 
-    function applyTripImport(data) {
-      if (!tripState || applyingRemote) return false;
+    function parseTripImportData(data) {
       if (!data || typeof data !== "object") throw new Error("檔案格式不正確");
       const isPack = data.format === "travel-trip-export" || data.version === 1 || data.version === 2;
       const title = typeof data.title === "string" ? data.title.trim() : "";
@@ -2638,6 +2642,14 @@
           throw new Error("JSON 內容不完整");
         }
       }
+      return { title, contentSrc };
+    }
+
+    function applyTripImport(data) {
+      if (!tripState || applyingRemote) return false;
+      const parsed = parseTripImportData(data);
+      const title = parsed.title;
+      const contentSrc = parsed.contentSrc;
 
       tripState.title = title || tripState.title || "未命名行程";
       // 匯入只覆蓋行程／準備，保留目前記帳
@@ -2656,6 +2668,57 @@
       });
       renderTripUI();
       return true;
+    }
+
+    function applyTransitImport(data) {
+      if (!tripState || applyingRemote) return false;
+      const parsed = parseTripImportData(data);
+      const incoming = normalizeImportedContent(parsed.contentSrc, { keepMoney: true });
+      ensureContent();
+      const targetDays = Array.isArray(tripState.content.days) ? tripState.content.days : [];
+      const srcDays = Array.isArray(incoming.days) ? incoming.days : [];
+      let updatedCount = 0;
+
+      for (let di = 0; di < targetDays.length; di++) {
+        const day = targetDays[di];
+        if (!day || !Array.isArray(day.items)) continue;
+        const targetItems = day.items;
+        const srcDay = srcDays[di];
+        const srcItems = srcDay && Array.isArray(srcDay.items) ? srcDay.items : [];
+        const srcById = new Map(srcItems.filter((it) => it && it.id).map((it) => [it.id, it]));
+        const targetIds = new Set(targetItems.filter((it) => it && it.id).map((it) => it.id));
+
+        targetItems.forEach((it) => {
+          if (it && it.nextTransits) delete it.nextTransits;
+        });
+
+        for (let i = 0; i < targetItems.length; i++) {
+          const targetItem = targetItems[i];
+          if (!targetItem || isTransitItem(targetItem)) continue;
+          const srcItem = (targetItem.id && srcById.get(targetItem.id)) || srcItems[i];
+          if (!srcItem || typeof srcItem !== "object" || !srcItem.nextTransits || typeof srcItem.nextTransits !== "object") continue;
+          const next = {};
+          for (const [toId, transitRaw] of Object.entries(srcItem.nextTransits)) {
+            if (!toId || !targetIds.has(toId)) continue;
+            next[toId] = transitPayloadFromItem(transitRaw);
+          }
+          if (Object.keys(next).length) {
+            targetItem.nextTransits = next;
+            updatedCount += Object.keys(next).length;
+          }
+        }
+      }
+
+      activeDayIdx = 0;
+      draftTransit = null;
+      closeSheet();
+      closeAddPlanMenu();
+      schedulePush({
+        action: "匯入交通",
+        detail: `更新 ${updatedCount} 段`,
+      });
+      renderTripUI();
+      return updatedCount;
     }
 
     async function importTripJsonFile(file) {
@@ -2680,6 +2743,30 @@
       }
       applyTripImport(data);
       showToast("匯入完成");
+    }
+
+    async function importTransitJsonFile(file) {
+      if (!file || !tripState) return;
+      const text = await file.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error("無法解析 JSON 檔案");
+      }
+      if (data && typeof data === "object") {
+        delete data.code;
+        delete data.members;
+        delete data.history;
+        delete data.createdBy;
+        delete data.updatedBy;
+        if (data.content && typeof data.content === "object") {
+          delete data.content.code;
+          delete data.content.members;
+        }
+      }
+      const changed = applyTransitImport(data);
+      showToast(changed > 0 ? `交通匯入完成（${changed} 段）` : "交通匯入完成（沒有可更新的路段）");
     }
 
     function restoreFromHistoryEntry(entry) {
@@ -7061,12 +7148,27 @@
         if (!confirm("匯入會覆蓋目前的行程與準備清單（記帳、行程碼、成員會保留）。確定繼續？")) return;
         $("importTripFile")?.click();
       });
+      $("btnMoreImportTransit")?.addEventListener("click", () => {
+        if (!tripState) return;
+        if (!confirm("只會匯入景點間交通（nextTransits），不會改景點、準備清單與記帳。確定繼續？")) return;
+        $("importTransitFile")?.click();
+      });
       $("importTripFile")?.addEventListener("change", async (e) => {
         const file = e.target.files && e.target.files[0];
         e.target.value = "";
         if (!file) return;
         try {
           await importTripJsonFile(file);
+        } catch (err) {
+          alert(err.message || String(err));
+        }
+      });
+      $("importTransitFile")?.addEventListener("change", async (e) => {
+        const file = e.target.files && e.target.files[0];
+        e.target.value = "";
+        if (!file) return;
+        try {
+          await importTransitJsonFile(file);
         } catch (err) {
           alert(err.message || String(err));
         }
